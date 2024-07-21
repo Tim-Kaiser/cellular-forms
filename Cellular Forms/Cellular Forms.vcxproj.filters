@@ -15,5 +15,21 @@
     <ClCompile Include="Main.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="Particle.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Particle.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="kernel.cu">
+      <Filter>Kernel</Filter>
+    </CudaCompile>
   </ItemGroup>
 </Project>
