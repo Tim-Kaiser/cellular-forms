@@ -10,6 +10,15 @@
     <Filter Include="Header">
       <UniqueIdentifier>{2a6f80dd-19d9-4a83-a49e-0d94c662fd16}</UniqueIdentifier>
     </Filter>
+    <Filter Include="glad">
+      <UniqueIdentifier>{a17d5d81-6bae-4596-87fb-063ce6eb92b2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shader">
+      <UniqueIdentifier>{1546f575-8f76-402e-b223-e3a1b4d01bc5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="math">
+      <UniqueIdentifier>{cd0b2d22-a7e1-48d1-8f9f-6aff3b41e1da}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -18,12 +27,39 @@
     <ClCompile Include="Particle.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="gl.c">
+      <Filter>glad</Filter>
+    </ClCompile>
+    <ClCompile Include="Shader.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Quad.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Buffer.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Particle.h">
       <Filter>Header</Filter>
     </ClInclude>
-    <ClInclude Include="Renderer.h">
+    <ClInclude Include="Vec2.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glad\gl.h">
+      <Filter>glad</Filter>
+    </ClInclude>
+    <ClInclude Include="include\KHR\khrplatform.h">
+      <Filter>glad</Filter>
+    </ClInclude>
+    <ClInclude Include="Shader.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Quad.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Buffer.h">
       <Filter>Header</Filter>
     </ClInclude>
   </ItemGroup>
@@ -31,5 +67,13 @@
     <CudaCompile Include="kernel.cu">
       <Filter>Kernel</Filter>
     </CudaCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Shaders\main.vert">
+      <Filter>Shader</Filter>
+    </None>
+    <None Include="Shaders\main.frag">
+      <Filter>Shader</Filter>
+    </None>
   </ItemGroup>
 </Project>
