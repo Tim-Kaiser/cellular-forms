@@ -39,6 +39,9 @@
     <ClCompile Include="Buffer.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="Loader.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Particle.h">
@@ -60,6 +63,9 @@
       <Filter>Header</Filter>
     </ClInclude>
     <ClInclude Include="Buffer.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Loader.h">
       <Filter>Header</Filter>
     </ClInclude>
   </ItemGroup>

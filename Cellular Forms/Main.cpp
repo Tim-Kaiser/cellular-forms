@@ -4,6 +4,8 @@
 #include "Vec2.h"
 #include "Shader.h"
 #include "Quad.h"
+#include "Loader.h"
+#include "Buffer.h"
 
 #include <vector>
 #include <iostream>
@@ -85,13 +87,31 @@ int main(int argc, char* arfv[]) {
 	int width, height;
 	glfwGetFramebufferSize(window, &width, &height);
 	glViewport(0, 0, width, height);
-	Quad quad(width, height);
+
+	Model model;
+	loadModel("Objects/Cube.obj",model);
+
+	// MODEL
+	GLuint vb;
+	glGenBuffers(1, &vb);
+	glBindBuffer(GL_ARRAY_BUFFER, vb);
+	glBufferData(GL_ARRAY_BUFFER, model.vertices.size() * sizeof(glm::vec3), &model.vertices[0], GL_STATIC_DRAW);
 
 	while (!glfwWindowShouldClose(window)) {
 
 		glClear(GL_COLOR_BUFFER_BIT);
-
-		quad.Render();
+		glEnableVertexAttribArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, vb);
+		glVertexAttribPointer(
+			0,                  
+			3,                  
+			GL_FLOAT,          
+			GL_FALSE,           
+			0,                  
+			(void*)0            
+		);
+		glDrawArrays(GL_TRIANGLES, 0, model.vertices.size());
+		glDisableVertexAttribArray(0);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
