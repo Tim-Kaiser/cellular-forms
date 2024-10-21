@@ -46,9 +46,9 @@ int main(int argc, char* arfv[]) {
 
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	//glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMP_PROFILE);
 
-	GLFWwindow* window = glfwCreateWindow(1920, 1080, "Cellular Forms", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(1920, 1080, "OpenGL", NULL, NULL);
 
 	if (!window) {
 		std::printf("window broken");
@@ -62,7 +62,7 @@ int main(int argc, char* arfv[]) {
 	gladLoadGL(glfwGetProcAddress);
 	glfwSwapInterval(1);
 
-
+	
 
 	//===== SHADER INIT =====
 	if (!Shader::Instance()->CreateProgram()) {
@@ -89,29 +89,33 @@ int main(int argc, char* arfv[]) {
 	glViewport(0, 0, width, height);
 
 	Model model;
-	loadModel("Objects/Cube.obj",model);
+	loadModel("Objects/sphere.obj", model);
+	Buffer buffer;
 
-	// MODEL
-	GLuint vb;
-	glGenBuffers(1, &vb);
-	glBindBuffer(GL_ARRAY_BUFFER, vb);
-	glBufferData(GL_ARRAY_BUFFER, model.vertices.size() * sizeof(glm::vec3), &model.vertices[0], GL_STATIC_DRAW);
 
+	buffer.CreateBuffer(model.vertices.size() / 3);
+	buffer.FillVBO(Buffer::VERTEX_BUFFER, &model.vertices[0], model.vertices.size() * sizeof(GLfloat), Buffer::SINGLE);
+	buffer.FillVBO(Buffer::TEXTURE_BUFFER, &model.uvs[0], model.uvs.size() * sizeof(GLfloat), Buffer::SINGLE);
+	buffer.FillVBO(Buffer::NORMAL_BUFFER, &model.normals[0], model.normals.size() * sizeof(GLfloat), Buffer::SINGLE);
+
+	buffer.LinkBuffer("vertex", Buffer::VERTEX_BUFFER, Buffer::XYZ, Buffer::FLOAT);
+	buffer.LinkBuffer("uv", Buffer::TEXTURE_BUFFER, Buffer::UV, Buffer::FLOAT);
+	buffer.LinkBuffer("normal", Buffer::NORMAL_BUFFER, Buffer::XYZ, Buffer::FLOAT);
+
+	// PROJECTION
+
+	glm::mat4 projection = glm::scale(glm::mat4(1.0), glm::vec3(0.7));
+
+	Shader::Instance()->SendUniformData("projectionMatrix", projection);
+	glEnable(GL_DEPTH_TEST);
 	while (!glfwWindowShouldClose(window)) {
 
-		glClear(GL_COLOR_BUFFER_BIT);
-		glEnableVertexAttribArray(0);
-		glBindBuffer(GL_ARRAY_BUFFER, vb);
-		glVertexAttribPointer(
-			0,                  
-			3,                  
-			GL_FLOAT,          
-			GL_FALSE,           
-			0,                  
-			(void*)0            
-		);
-		glDrawArrays(GL_TRIANGLES, 0, model.vertices.size());
-		glDisableVertexAttribArray(0);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		glm::mat4 rotate = glm::rotate(projection, (float) glm::radians(glfwGetTime() * 50), glm::vec3(0.0, 1.0, 0.0));
+		Shader::Instance()->SendUniformData("projectionMatrix", rotate);
+		
+		buffer.Draw(Buffer::TRIANGLES);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();

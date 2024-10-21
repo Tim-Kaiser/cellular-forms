@@ -28,7 +28,7 @@ bool loadModel(const char* path, Model& model)
 
     while (std::getline(file, line)) 
     {
-        if (line[0] == 'v') {
+        if (line[0] == 'v' && line[1] == ' ') {
             glm::vec3 vertex;
             line.erase(0, 1);
 
@@ -40,7 +40,7 @@ bool loadModel(const char* path, Model& model)
             temp_vertices.push_back(vertex);
             num_vert++;
         }
-        else if (line[0] == 'vt')
+        else if (line[0] == 'v' && line[1] == 't')
         {
             glm::vec2 uv;
             line.erase(0, 2);
@@ -54,7 +54,7 @@ bool loadModel(const char* path, Model& model)
             num_uv++;
 
         }
-        else if (line[0] == 'vn')
+        else if (line[0] == 'v' && line[1] == 'n')
         {
             glm::vec3 normal;
 
@@ -78,7 +78,7 @@ bool loadModel(const char* path, Model& model)
             char* parts[3];
 
             parts[0] = strtok(&line[0], " ");
-            for (int i = 0; i < 3; i++)
+            for (int i = 1; i < 3; i++)
             {
                 parts[i] = strtok(NULL, " ");
             }
@@ -119,21 +119,24 @@ void indexing(std::vector<int>& vertexIndices, std::vector<int>& uvIndices, std:
     {
         int vi = vertexIndices[i];
         glm::vec3 vertex = temp_v[vi - 1];
-        model.vertices.push_back(vertex);
+        model.vertices.push_back((GLfloat)vertex.x);
+        model.vertices.push_back((GLfloat)vertex.y);
+        model.vertices.push_back((GLfloat)vertex.z);
     }
     for (int i = 0; i < uvIndices.size(); i++)
     {
         int uvi = uvIndices[i];
         glm::vec2 uv = temp_uv[uvi - 1];
-        model.uvs.push_back(uv);
-
+        model.uvs.push_back((GLfloat)uv.x);
+        model.uvs.push_back((GLfloat)uv.y);
     }
     for (int i = 0; i < normalIndices.size(); i++)
     {
         int ni = normalIndices[i];
         glm::vec3 normal = temp_n[ni - 1];
-        model.normals.push_back(normal);
-
+        model.normals.push_back(normal.x);
+        model.normals.push_back(normal.y);
+        model.normals.push_back(normal.z);
     }
 }
 

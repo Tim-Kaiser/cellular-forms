@@ -1,11 +1,12 @@
 #pragma once
 #include <glm.hpp>
 #include <vector>
+#include "include/glad/gl.h"
 
 typedef struct {
-	std::vector<glm::vec3> vertices;
-	std::vector<glm::vec2> uvs;
-	std::vector<glm::vec3> normals;
+	std::vector<GLfloat> vertices;
+	std::vector<GLfloat> uvs;
+	std::vector<GLfloat> normals;
 } Model;
 
 bool loadModel(const char* path, Model& model);
