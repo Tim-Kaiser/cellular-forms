@@ -4,6 +4,8 @@
 #include "Vec2.h"
 #include "Shader.h"
 #include "Quad.h"
+#include "Loader.h"
+#include "Buffer.h"
 
 #include <vector>
 #include <iostream>
@@ -11,6 +13,9 @@
 #include <GLFW/glfw3.h>
 #include "include/glad/gl.h"
 
+
+int frames = 0;
+std::string title = "Cellular Forms";
 
 std::vector<Particle> setup() {
 	std::vector<Particle> particles;
@@ -33,6 +38,17 @@ void error_callback(int error, const char* description)
 	fprintf(stderr, "Error: %s\n", description);
 }
 
+void updateWindowTitle(GLFWwindow* window, float deltaT)
+{
+	if (deltaT >= 1.0)
+	{
+		float fps = frames / deltaT;
+		char title[30];
+		sprintf(title, "Cellular Forms FPS: %.1f", fps);
+		glfwSetWindowTitle(window, title);
+	}
+}
+
 int main(int argc, char* arfv[]) {
 	//std::vector<Particle> particles = setup();
 
@@ -44,9 +60,9 @@ int main(int argc, char* arfv[]) {
 
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	//glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMP_PROFILE);
 
-	GLFWwindow* window = glfwCreateWindow(1920, 1080, "Cellular Forms", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(1920, 1080, "OpenGL", NULL, NULL);
 
 	if (!window) {
 		std::printf("window broken");
@@ -60,7 +76,7 @@ int main(int argc, char* arfv[]) {
 	gladLoadGL(glfwGetProcAddress);
 	glfwSwapInterval(1);
 
-
+	
 
 	//===== SHADER INIT =====
 	if (!Shader::Instance()->CreateProgram()) {
@@ -85,13 +101,44 @@ int main(int argc, char* arfv[]) {
 	int width, height;
 	glfwGetFramebufferSize(window, &width, &height);
 	glViewport(0, 0, width, height);
-	Quad quad(width, height);
 
+	Model model;
+	loadModel("Objects/sphere.obj", model);
+	Buffer buffer;
+
+
+	buffer.CreateBuffer(model.vertices.size() / 3);
+	buffer.FillVBO(Buffer::VERTEX_BUFFER, &model.vertices[0], model.vertices.size() * sizeof(GLfloat), Buffer::SINGLE);
+	buffer.FillVBO(Buffer::TEXTURE_BUFFER, &model.uvs[0], model.uvs.size() * sizeof(GLfloat), Buffer::SINGLE);
+	buffer.FillVBO(Buffer::NORMAL_BUFFER, &model.normals[0], model.normals.size() * sizeof(GLfloat), Buffer::SINGLE);
+
+	buffer.LinkBuffer("vertex", Buffer::VERTEX_BUFFER, Buffer::XYZ, Buffer::FLOAT);
+	buffer.LinkBuffer("uv", Buffer::TEXTURE_BUFFER, Buffer::UV, Buffer::FLOAT);
+	buffer.LinkBuffer("normal", Buffer::NORMAL_BUFFER, Buffer::XYZ, Buffer::FLOAT);
+
+	// PROJECTION
+
+	glm::mat4 projection = glm::scale(glm::mat4(1.0), glm::vec3(0.7));
+
+	Shader::Instance()->SendUniformData("projectionMatrix", projection);
+	glEnable(GL_DEPTH_TEST);
+
+	float lastT = 0;
 	while (!glfwWindowShouldClose(window)) {
 
-		glClear(GL_COLOR_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		quad.Render();
+		float time = glfwGetTime();
+
+		glm::mat4 rotate = glm::rotate(projection, (float) glm::radians(time * 50), glm::vec3(0.0, 1.0, 0.0));
+		Shader::Instance()->SendUniformData("projectionMatrix", rotate);
+
+
+		frames++;
+		updateWindowTitle(window, time - lastT);
+		lastT = time;
+
+		buffer.Draw(Buffer::TRIANGLES);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
