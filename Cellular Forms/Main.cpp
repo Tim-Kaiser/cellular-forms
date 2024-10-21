@@ -14,6 +14,9 @@
 #include "include/glad/gl.h"
 
 
+int frames = 0;
+std::string title = "Cellular Forms";
+
 std::vector<Particle> setup() {
 	std::vector<Particle> particles;
 	Particle p = Particle(0, 0, 0);
@@ -33,6 +36,17 @@ void window_close_callback(GLFWwindow* window) {
 void error_callback(int error, const char* description)
 {
 	fprintf(stderr, "Error: %s\n", description);
+}
+
+void updateWindowTitle(GLFWwindow* window, float deltaT)
+{
+	if (deltaT >= 1.0)
+	{
+		float fps = frames / deltaT;
+		char title[30];
+		sprintf(title, "Cellular Forms FPS: %.1f", fps);
+		glfwSetWindowTitle(window, title);
+	}
 }
 
 int main(int argc, char* arfv[]) {
@@ -108,13 +122,22 @@ int main(int argc, char* arfv[]) {
 
 	Shader::Instance()->SendUniformData("projectionMatrix", projection);
 	glEnable(GL_DEPTH_TEST);
+
+	float lastT = 0;
 	while (!glfwWindowShouldClose(window)) {
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		glm::mat4 rotate = glm::rotate(projection, (float) glm::radians(glfwGetTime() * 50), glm::vec3(0.0, 1.0, 0.0));
+		float time = glfwGetTime();
+
+		glm::mat4 rotate = glm::rotate(projection, (float) glm::radians(time * 50), glm::vec3(0.0, 1.0, 0.0));
 		Shader::Instance()->SendUniformData("projectionMatrix", rotate);
-		
+
+
+		frames++;
+		updateWindowTitle(window, time - lastT);
+		lastT = time;
+
 		buffer.Draw(Buffer::TRIANGLES);
 
 		glfwSwapBuffers(window);
