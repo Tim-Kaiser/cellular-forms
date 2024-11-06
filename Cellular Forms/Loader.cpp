@@ -5,7 +5,7 @@
 #include <iostream>
 #include <sstream>
 
-bool loadModel(const char* path, Model& model)
+bool loadObject(const char* path, Object& obj)
 {
 
     std::ifstream file(path);
@@ -108,35 +108,35 @@ bool loadModel(const char* path, Model& model)
             normalIndices.push_back(normalIndex[2]);
         }
     }
-    indexing(vertexIndices, uvIndices, normalIndices, temp_vertices, temp_uvs, temp_normals, model);
+    indexing(vertexIndices, uvIndices, normalIndices, temp_vertices, temp_uvs, temp_normals, obj);
 
     return true;
 }
 
-void indexing(std::vector<int>& vertexIndices, std::vector<int>& uvIndices, std::vector<int>& normalIndices, std::vector<glm::vec3> temp_v, std::vector<glm::vec2> temp_uv, std::vector<glm::vec3> temp_n, Model& model)
+void indexing(std::vector<int>& vertexIndices, std::vector<int>& uvIndices, std::vector<int>& normalIndices, std::vector<glm::vec3> temp_v, std::vector<glm::vec2> temp_uv, std::vector<glm::vec3> temp_n, Object& obj)
 {
     for (int i = 0; i < vertexIndices.size(); i++)
     {
         int vi = vertexIndices[i];
         glm::vec3 vertex = temp_v[vi - 1];
-        model.vertices.push_back((GLfloat)vertex.x);
-        model.vertices.push_back((GLfloat)vertex.y);
-        model.vertices.push_back((GLfloat)vertex.z);
+        obj.vertices.push_back((GLfloat)vertex.x);
+        obj.vertices.push_back((GLfloat)vertex.y);
+        obj.vertices.push_back((GLfloat)vertex.z);
     }
     for (int i = 0; i < uvIndices.size(); i++)
     {
         int uvi = uvIndices[i];
         glm::vec2 uv = temp_uv[uvi - 1];
-        model.uvs.push_back((GLfloat)uv.x);
-        model.uvs.push_back((GLfloat)uv.y);
+        obj.uvs.push_back((GLfloat)uv.x);
+        obj.uvs.push_back((GLfloat)uv.y);
     }
     for (int i = 0; i < normalIndices.size(); i++)
     {
         int ni = normalIndices[i];
         glm::vec3 normal = temp_n[ni - 1];
-        model.normals.push_back(normal.x);
-        model.normals.push_back(normal.y);
-        model.normals.push_back(normal.z);
+        obj.normals.push_back(normal.x);
+        obj.normals.push_back(normal.y);
+        obj.normals.push_back(normal.z);
     }
 }
 
