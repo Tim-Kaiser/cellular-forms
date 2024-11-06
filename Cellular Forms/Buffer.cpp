@@ -9,8 +9,10 @@ Buffer::Buffer()
 	m_colorVBO = 0;
 	m_normalVBO = 0;
 	m_textureVBO = 0;
+	m_instanceVBO = 0;
 	m_vertexCount = 0;
 }
+
 
 void Buffer::CreateBuffer(GLuint vertexCount)
 {
@@ -18,6 +20,7 @@ void Buffer::CreateBuffer(GLuint vertexCount)
 	glGenBuffers(1, &m_colorVBO);
 	glGenBuffers(1, &m_normalVBO);
 	glGenBuffers(1, &m_textureVBO);
+	glGenBuffers(1, &m_instanceVBO);
 	glGenVertexArrays(1, &m_vertexArrayObj);
 
 	m_vertexCount = vertexCount;
@@ -36,16 +39,15 @@ void Buffer::FillVBO(VBOType vboType, GLfloat* data, GLsizeiptr bufferSize, Fill
 	else if (vboType == NORMAL_BUFFER) {
 		glBindBuffer(GL_ARRAY_BUFFER, m_normalVBO);
 	}
+	else if (vboType == INSTANCE_BUFFER) {
+		glBindBuffer(GL_ARRAY_BUFFER, m_instanceVBO);
+	}
 	else {
 		glBindBuffer(GL_ARRAY_BUFFER, m_textureVBO);
 	}
 
 	glBufferData(GL_ARRAY_BUFFER, bufferSize, data, fillType);
 	glBindVertexArray(0);
-}
-
-void Buffer::FillEBO(GLuint* data, GLsizeiptr bufferSize, FillType fillType)
-{
 }
 
 void Buffer::LinkBuffer(const std::string& attribute, VBOType vboType, ComponentType componentType, DataType dataType)
@@ -65,10 +67,16 @@ void Buffer::LinkBuffer(const std::string& attribute, VBOType vboType, Component
 		else if (vboType == NORMAL_BUFFER) {
 			glBindBuffer(GL_ARRAY_BUFFER, m_normalVBO);
 		}
+		else if (vboType == INSTANCE_BUFFER) {
+			glBindBuffer(GL_ARRAY_BUFFER, m_instanceVBO);
+			glVertexAttribDivisor(m_instanceVBO, 1);
+		}
 		else {
 			glBindBuffer(GL_ARRAY_BUFFER, m_textureVBO);
 		}
+
 		glVertexAttribPointer(id, componentType, GL_FLOAT, GL_FALSE, 0, nullptr);
+		
 		glEnableVertexAttribArray(id);
 		glBindVertexArray(0);
 	}
@@ -78,10 +86,41 @@ void Buffer::LinkBuffer(const std::string& attribute, VBOType vboType, Component
 
 }
 
+void Buffer::SetInstancedData(int attribPosition, glm::mat4 matrix)
+{
+}
+
+void Buffer::SetInstancedData(int attribPosition, glm::vec3 vecs[], int size)
+{
+	GLuint shaderProgramID = Shader::Instance()->GetShaderProgramID();
+
+	glBindBuffer(GL_ARRAY_BUFFER, m_instanceVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * size, &vecs[0], GL_DYNAMIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	GLuint instanceArray;
+	glGenVertexArrays(1, &instanceArray);
+	glBindVertexArray(instanceArray);
+
+	glEnableVertexAttribArray(attribPosition);
+	glBindBuffer(GL_ARRAY_BUFFER, m_instanceVBO);
+	glVertexAttribPointer(attribPosition, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (void*)0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glVertexAttribDivisor(attribPosition, 1);
+	glBindVertexArray(0);
+}
+
 void Buffer::Draw(DrawType drawType)
 {
 	glBindVertexArray(m_vertexArrayObj);
 	glDrawArrays(drawType, 0, m_vertexCount);
+	glBindVertexArray(0);
+}
+
+void Buffer::DrawInstanced(DrawType drawType, int instanceCount)
+{
+	glBindVertexArray(m_vertexArrayObj);
+	glDrawArraysInstanced(drawType, 0, m_vertexCount, instanceCount);
 	glBindVertexArray(0);
 }
 
