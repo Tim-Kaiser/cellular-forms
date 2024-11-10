@@ -1,11 +1,7 @@
 #define GLFW_INCLUDE_NONE
 
-#include "Particle.h"
-#include "Vec2.h"
-#include "Shader.h"
-#include "Quad.h"
-#include "Loader.h"
-#include "Buffer.h"
+#include "ShaderLoader.h"
+#include "ObjectLoader.h"
 #include "Model.h"
 
 #include <vector>
@@ -15,10 +11,9 @@
 #include "include/glad/gl.h"
 
 
-int frames = 0;
 std::string title = "Cellular Forms";
 
-constexpr auto PARTICLE_COUNT = 15000;
+constexpr auto PARTICLE_COUNT = 60000;
 
 
 static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
@@ -40,24 +35,13 @@ void error_callback(int error, const char* description)
 	fprintf(stderr, "Error: %s\n", description);
 }
 
-void updateWindowTitle(GLFWwindow* window, float deltaT)
-{
-	if (deltaT >= 1000.0)
-	{
-		float fps = frames / deltaT;
-		char title[30];
-		sprintf(title, "Cellular Forms FPS: %.1f", fps);
-		glfwSetWindowTitle(window, title);
-	}
-}
-
 void applyLorenz(GLfloat& x, GLfloat& y, GLfloat& z)
 {
 	float a = 10;
 	float b = 28; 
-	float c = 8.0 / 3.0;
+	float c = 8.0f / 3.0f;
 
-	float dt = 0.0001;
+	float dt = 0.0001f;
 
 	float dx = (a * (y - x)) * dt;
 	float dy = (x * (b - z) - y) * dt;
@@ -80,7 +64,7 @@ int main(int argc, char* arfv[]) {
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
 	//glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMP_PROFILE);
 
-	GLFWwindow* window = glfwCreateWindow(1920, 1080, "OpenGL - 15.000 Spheres", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(1920, 1080, "OpenGL", NULL, NULL);
 
 	if (!window) {
 		std::printf("window broken");
@@ -98,31 +82,29 @@ int main(int argc, char* arfv[]) {
 	
 
 	//===== SHADER INIT =====
-	if (!Shader::Instance()->CreateProgram()) {
-		return 0;
-	}
+	ShaderLoader shaderLoader;
+	std::unique_ptr<Shader> mainShader = shaderLoader.CreateShaders();
+	shaderLoader.CompileShaders("Shaders/main.vert", mainShader->m_vertexShaderID);
+	shaderLoader.CompileShaders("Shaders/main.frag", mainShader->m_fragmentShaderID);
 
-	if (!Shader::Instance()->CreateShaders()) {
-		return 0;
-	}
-	if (!Shader::Instance()->CompileShaders("Shaders/main.vert", Shader::ShaderType::VERTEX_SHADER)) {
-		return -1;
-	}
-	if (!Shader::Instance()->CompileShaders("Shaders/main.frag", Shader::ShaderType::FRAGMENT_SHADER)) {
-		return -1;
-	}
-	Shader::Instance()->AttachShaders();
+	shaderLoader.AttachShaders(*mainShader);
+	shaderLoader.LinkProgram(*mainShader);
 
-	if (!Shader::Instance()->LinkProgram()) {
-		return 0;
-	}
+	std::unique_ptr<Shader> ssaoShader = shaderLoader.CreateShaders();
+	shaderLoader.CompileShaders("Shaders/ssao.vert", ssaoShader->m_vertexShaderID);
+	shaderLoader.CompileShaders("Shaders/ssao.frag", ssaoShader->m_fragmentShaderID);
+
+	shaderLoader.AttachShaders(*ssaoShader);
+	shaderLoader.LinkProgram(*ssaoShader);
+	glUseProgram(mainShader->m_shaderProgramID);
+
 
 	int width, height;
 	glfwGetFramebufferSize(window, &width, &height);
 	glViewport(0, 0, width, height);
 
 	Object obj;
-	loadObject("Objects/sphere.obj", obj);
+	loadObject("Objects/sphere_small.obj", obj);
 
 	Model sphereModel(obj, true);
 
@@ -130,31 +112,30 @@ int main(int argc, char* arfv[]) {
 
 	int elements = PARTICLE_COUNT * 3;
 
-	//GLfloat* particles = (GLfloat*) malloc(sizeof(GLfloat) * elements);
-
-	std::vector < GLfloat > particles(elements);
+	std::vector < GLfloat > particles;
+	particles.reserve(elements);
 
 	int ROWS = 100;
 	int index = 0;
 	for (int i = 0; i < PARTICLE_COUNT; i = i + 1)
 	{
-		float x = i % ROWS;
+		int x = i % ROWS;
 		float y = (float) floor(i / ROWS);
-		particles[index++] = (GLfloat)x * 4.0f;
-		particles[index++] = (GLfloat)y * 4.0f;
-		particles[index++] = (GLfloat)0.0f;
+		particles.emplace_back((GLfloat)x * 4.0f);
+		particles.emplace_back((GLfloat)y * 4.0f);
+		particles.emplace_back((GLfloat)0.0f);
 	}
 
 	// PROJECTION
 
-	glm::mat4 model = glm::scale(glm::translate(glm::mat4(1.0), glm::vec3(-1.0, -1.0, 0.0)), glm::vec3(0.005));
+	glm::mat4 model = glm::scale(glm::translate(glm::mat4(1.0), glm::vec3(-1.0, -1.0, 0.0)), glm::vec3(0.05f));
 	glm::mat4 perspective = (glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 100.0f));
 
 	glm::mat4 view = glm::lookAt(glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-	Shader::Instance()->SendUniformData("projection", perspective);
-	Shader::Instance()->SendUniformData("view", view);
+	shaderLoader.SendUniformData("projection", perspective);
+	shaderLoader.SendUniformData("view", view);
 
-	Shader::Instance()->SendUniformData("model", model);
+	shaderLoader.SendUniformData("model", model);
 
 
 	glEnable(GL_DEPTH_TEST);
@@ -164,54 +145,62 @@ int main(int argc, char* arfv[]) {
 	glCullFace(GL_BACK);
 	glFrontFace(GL_CCW);
 
+	char title[64];
+	float lastFrameTime = (float)glfwGetTime();
+	int frames = 0;
 
-	float lastT = 0;
+	bool switchShader = true;
 	while (!glfwWindowShouldClose(window)) {
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		float time = glfwGetTime();
-
 		//glm::mat4 rotate = glm::rotate(model, (float) glm::radians(time * 50), glm::vec3(0.0, 1.0, 0.0));
 		//Shader::Instance()->SendUniformData("model", rotate);
 
-
-		frames++;
-		float deltaT = time - lastT;
-		if (deltaT >= 1.0)
-		{
-			float fps = frames / deltaT;
-			char title[30];
-			sprintf(title, "15.000 Spheres FPS: %.1f", fps);
-			glfwSetWindowTitle(window, title);
-			lastT = time;
-			frames = 0;
-		}
-
-		//for (int i = 0; i <= PARTICLE_COUNT - 1; i = i + 3)
-		//{
-			//applyLorenz(particles[i], particles[i + 1], particles[i + 2]);
-		//}
-		glBindVertexArray(sphereModel.getMesh().VAO);
-
 		glBindBuffer(GL_ARRAY_BUFFER, sphereModel.getMesh().instancedPosVBO);
-		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(GLfloat) * INSTANCE_STRIDE * PARTICLE_COUNT, &particles[0]);
+		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(GLfloat)* INSTANCE_STRIDE* PARTICLE_COUNT, &particles[0]);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-		glBindVertexArray(0);
 
 		sphereModel.RenderInstanced(PARTICLE_COUNT);
 
-		
-
 		glfwSwapBuffers(window);
 		glfwPollEvents();
+
+		if ((float)glfwGetTime() > 10.0f && switchShader)
+		{
+			switchShader = false;
+			glUseProgram(ssaoShader->m_shaderProgramID);
+			glm::mat4 model = glm::scale(glm::translate(glm::mat4(1.0), glm::vec3(-1.0, -1.0, 0.0)), glm::vec3(0.05f));
+			glm::mat4 perspective = (glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 100.0f));
+
+			glm::mat4 view = glm::lookAt(glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+			shaderLoader.SendUniformData("projection", perspective);
+			shaderLoader.SendUniformData("view", view);
+
+			shaderLoader.SendUniformData("model", model);
+		}
+
+
+		// FRAME COUNT
+		if (frames % 60 == 0)
+		{
+			float frametime = (float)glfwGetTime() - lastFrameTime;
+			float fps = 1.0f / frametime;
+
+			sprintf(title, "%.0i Spheres FPS: %.2f Frametime in ms: %.4f", PARTICLE_COUNT ,fps, frametime * 1000.0f);
+			glfwSetWindowTitle(window, title);
+		}
+
+		lastFrameTime = (float)glfwGetTime();
+		frames++;
 	}
 
+	shaderLoader.DetachShaders(*ssaoShader);
+	shaderLoader.DestroyShaders(*mainShader);
+	shaderLoader.DestroyProgram(*mainShader);
+	shaderLoader.DestroyProgram(*ssaoShader);
 
-	Shader::Instance()->DetachShaders();
-	Shader::Instance()->DestroyShaders();
-	Shader::Instance()->DestroyProgram();
 
 	glfwDestroyWindow(window);
 	glfwTerminate();

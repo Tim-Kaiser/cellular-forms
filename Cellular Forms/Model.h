@@ -1,12 +1,11 @@
 #pragma once
 
-#include "Buffer.h"
 #include <glm.hpp>
 #include "include/glad/gl.h"
-#include "Loader.h"
+#include "ObjectLoader.h"
 
 #define INSTANCE_STRIDE 3
-#define MAX_INSTANCES 15000
+#define MAX_INSTANCES 60000
 
 typedef struct
 {

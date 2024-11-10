@@ -60,16 +60,6 @@ m_pos(glm::vec3(0)),
 m_rot(glm::vec3(0)),
 m_isInstanced(isInstanced)
 {
-
-	//m_buffer.CreateBuffer(obj.vertices.size() / 3);
-	//m_buffer.FillVBO(Buffer::VERTEX_BUFFER, &obj.vertices[0], obj.vertices.size() * sizeof(GLfloat), Buffer::SINGLE);
-	//m_buffer.FillVBO(Buffer::TEXTURE_BUFFER, &obj.uvs[0], obj.uvs.size() * sizeof(GLfloat), Buffer::SINGLE);
-	//m_buffer.FillVBO(Buffer::NORMAL_BUFFER, &obj.normals[0], obj.normals.size() * sizeof(GLfloat), Buffer::SINGLE);
-
-	//m_buffer.LinkBuffer("vertex", Buffer::VERTEX_BUFFER, Buffer::XYZ, Buffer::FLOAT);
-	//m_buffer.LinkBuffer("uv", Buffer::TEXTURE_BUFFER, Buffer::UV, Buffer::FLOAT);
-	//m_buffer.LinkBuffer("normal", Buffer::NORMAL_BUFFER, Buffer::XYZ, Buffer::FLOAT);
-
 	m_mesh = createMesh(obj, isInstanced);
 }
 

@@ -1,4 +1,4 @@
-#include "Loader.h"
+#include "ObjectLoader.h"
 
 #include <fstream>
 #include <string>
@@ -21,7 +21,7 @@ bool loadObject(const char* path, Object& obj)
     std::vector< glm::vec2 > temp_uvs;
     std::vector< glm::vec3 > temp_normals;
 
-    std::vector< int > vertexIndices, uvIndices, normalIndices;
+    std::vector< size_t > vertexIndices, uvIndices, normalIndices;
 
 
     std::string line;
@@ -37,7 +37,7 @@ bool loadObject(const char* path, Object& obj)
             {
                 ss >> vertex[i];
             }
-            temp_vertices.push_back(vertex);
+            temp_vertices.emplace_back(vertex);
             num_vert++;
         }
         else if (line[0] == 'v' && line[1] == 't')
@@ -50,7 +50,7 @@ bool loadObject(const char* path, Object& obj)
             {
                 ss >> uv[i];
             }
-            temp_uvs.push_back(uv);
+            temp_uvs.emplace_back(uv);
             num_uv++;
 
         }
@@ -65,7 +65,7 @@ bool loadObject(const char* path, Object& obj)
             {
                 ss >> normal[i];
             }
-            temp_normals.push_back(normal);
+            temp_normals.emplace_back(normal);
             num_normals++;
 
         }
@@ -95,17 +95,17 @@ bool loadObject(const char* path, Object& obj)
             uvIndex[2] = atoi(strtok(NULL, "/"));
             normalIndex[2] = atoi(strtok(NULL, "/"));
 
-            vertexIndices.push_back(vertexIndex[0]);
-            vertexIndices.push_back(vertexIndex[1]);
-            vertexIndices.push_back(vertexIndex[2]);
+            vertexIndices.emplace_back(vertexIndex[0]);
+            vertexIndices.emplace_back(vertexIndex[1]);
+            vertexIndices.emplace_back(vertexIndex[2]);
 
-            uvIndices.push_back(uvIndex[0]);
-            uvIndices.push_back(uvIndex[1]);
-            uvIndices.push_back(uvIndex[2]);
+            uvIndices.emplace_back(uvIndex[0]);
+            uvIndices.emplace_back(uvIndex[1]);
+            uvIndices.emplace_back(uvIndex[2]);
 
-            normalIndices.push_back(normalIndex[0]);
-            normalIndices.push_back(normalIndex[1]);
-            normalIndices.push_back(normalIndex[2]);
+            normalIndices.emplace_back(normalIndex[0]);
+            normalIndices.emplace_back(normalIndex[1]);
+            normalIndices.emplace_back(normalIndex[2]);
         }
     }
     indexing(vertexIndices, uvIndices, normalIndices, temp_vertices, temp_uvs, temp_normals, obj);
@@ -113,30 +113,34 @@ bool loadObject(const char* path, Object& obj)
     return true;
 }
 
-void indexing(std::vector<int>& vertexIndices, std::vector<int>& uvIndices, std::vector<int>& normalIndices, std::vector<glm::vec3> temp_v, std::vector<glm::vec2> temp_uv, std::vector<glm::vec3> temp_n, Object& obj)
+void indexing(std::vector<size_t>& vertexIndices, std::vector<size_t>& uvIndices, std::vector<size_t>& normalIndices, std::vector<glm::vec3>& temp_v, std::vector<glm::vec2>& temp_uv, std::vector<glm::vec3>& temp_n, Object& obj)
 {
+    obj.vertices.reserve(vertexIndices.size());
+    obj.normals.reserve(normalIndices.size());
+    obj.uvs.reserve(uvIndices.size());
+
     for (int i = 0; i < vertexIndices.size(); i++)
     {
-        int vi = vertexIndices[i];
+        size_t vi = vertexIndices[i];
         glm::vec3 vertex = temp_v[vi - 1];
-        obj.vertices.push_back((GLfloat)vertex.x);
-        obj.vertices.push_back((GLfloat)vertex.y);
-        obj.vertices.push_back((GLfloat)vertex.z);
+        obj.vertices.emplace_back((GLfloat)vertex.x);
+        obj.vertices.emplace_back((GLfloat)vertex.y);
+        obj.vertices.emplace_back((GLfloat)vertex.z);
     }
     for (int i = 0; i < uvIndices.size(); i++)
     {
-        int uvi = uvIndices[i];
+        size_t uvi = uvIndices[i];
         glm::vec2 uv = temp_uv[uvi - 1];
-        obj.uvs.push_back((GLfloat)uv.x);
-        obj.uvs.push_back((GLfloat)uv.y);
+        obj.uvs.emplace_back((GLfloat)uv.x);
+        obj.uvs.emplace_back((GLfloat)uv.y);
     }
     for (int i = 0; i < normalIndices.size(); i++)
     {
-        int ni = normalIndices[i];
+        size_t ni = normalIndices[i];
         glm::vec3 normal = temp_n[ni - 1];
-        obj.normals.push_back(normal.x);
-        obj.normals.push_back(normal.y);
-        obj.normals.push_back(normal.z);
+        obj.normals.emplace_back(normal.x);
+        obj.normals.emplace_back(normal.y);
+        obj.normals.emplace_back(normal.z);
     }
 }
 
