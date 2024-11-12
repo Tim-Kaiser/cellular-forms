@@ -18,13 +18,7 @@ typedef struct
 
 class ShaderLoader {
 
-private:
-	GLuint m_shaderProgramID;
-
 public:
-	ShaderLoader();
-
-	GLuint GetShaderProgramID();
 
 	std::unique_ptr<Shader> CreateShaders();
 

@@ -1,14 +1,12 @@
 #define GLFW_INCLUDE_NONE
 
+#include "Window.h"
 #include "ShaderLoader.h"
 #include "ObjectLoader.h"
 #include "Model.h"
 
 #include <vector>
-#include <iostream>
 #include <glm.hpp>
-#include <GLFW/glfw3.h>
-#include "include/glad/gl.h"
 
 
 std::string title = "Cellular Forms";
@@ -16,70 +14,9 @@ std::string title = "Cellular Forms";
 constexpr auto PARTICLE_COUNT = 60000;
 
 
-static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-		glfwSetWindowShouldClose(window, GLFW_TRUE);
-}
-
-void window_close_callback(GLFWwindow* window) {
-	glfwSetWindowShouldClose(window, GLFW_TRUE);
-}
-
-void framebuffer_resize_callback(GLFWwindow* window, int width, int height)
-{
-	glViewport(0, 0, width, height);
-}
-
-void error_callback(int error, const char* description)
-{
-	fprintf(stderr, "Error: %s\n", description);
-}
-
-void applyLorenz(GLfloat& x, GLfloat& y, GLfloat& z)
-{
-	float a = 10;
-	float b = 28; 
-	float c = 8.0f / 3.0f;
-
-	float dt = 0.0001f;
-
-	float dx = (a * (y - x)) * dt;
-	float dy = (x * (b - z) - y) * dt;
-	float dz = (x * y - c * z) * dy;
-
-	x += dx;
-	y += dy;
-	z += dz;
-}
-
 int main(int argc, char* arfv[]) {
 
-	if (!glfwInit())
-	{
-		// Initialization failed
-	}
-	glfwSetErrorCallback(error_callback);
-
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
-	//glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMP_PROFILE);
-
-	GLFWwindow* window = glfwCreateWindow(1920, 1080, "OpenGL", NULL, NULL);
-
-	if (!window) {
-		std::printf("window broken");
-	};
-
-	glfwSetWindowCloseCallback(window, window_close_callback);
-	glfwSetFramebufferSizeCallback(window, framebuffer_resize_callback);
-	glfwSetKeyCallback(window, key_callback);
-
-	glfwMakeContextCurrent(window);
-
-	gladLoadGL(glfwGetProcAddress);
-	glfwSwapInterval(1);
-
-	
+	Window window(1920, 1080);
 
 	//===== SHADER INIT =====
 	ShaderLoader shaderLoader;
@@ -96,12 +33,14 @@ int main(int argc, char* arfv[]) {
 
 	shaderLoader.AttachShaders(*ssaoShader);
 	shaderLoader.LinkProgram(*ssaoShader);
+
+	std::unique_ptr<Shader> gBufferShader = shaderLoader.CreateShaders();
+	shaderLoader.CompileShaders("Shaders/gBuffer.vert", gBufferShader->m_vertexShaderID);
+	shaderLoader.CompileShaders("Shaders/gBuffer.frag", gBufferShader->m_fragmentShaderID);
+
+	shaderLoader.AttachShaders(*gBufferShader);
+	shaderLoader.LinkProgram(*gBufferShader);
 	glUseProgram(mainShader->m_shaderProgramID);
-
-
-	int width, height;
-	glfwGetFramebufferSize(window, &width, &height);
-	glViewport(0, 0, width, height);
 
 	Object obj;
 	loadObject("Objects/sphere_small.obj", obj);
@@ -150,7 +89,41 @@ int main(int argc, char* arfv[]) {
 	int frames = 0;
 
 	bool switchShader = true;
-	while (!glfwWindowShouldClose(window)) {
+
+	////SSAO
+	//GLuint gBuffer;
+	//glGenFramebuffers(1, &gBuffer);
+	//glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
+	//GLuint gPos, gNormal, gColor;
+
+	//// SSAO
+	//glGenTextures(1, &gPos);
+	//glBindTexture(GL_TEXTURE_2D, gPos);
+	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, gWidth, gHeight, 0, GL_RGBA, GL_FLOAT, NULL);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, gPos, 0);
+
+	//glGenTextures(1, &gNormal);
+	//glBindTexture(GL_TEXTURE_2D, gNormal);
+	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, gWidth, gHeight, 0, GL_RGBA, GL_FLOAT, NULL);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, gNormal, 0);
+
+	//glGenTextures(1, &gColor);
+	//glBindTexture(GL_TEXTURE_2D, gColor);
+	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, gWidth, gHeight, 0, GL_RGBA, GL_FLOAT, NULL);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, gColor, 0);
+
+
+	//GLuint attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
+	//glDrawBuffers(3, attachments);
+
+	 
+	while (window.Open()) {
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -164,8 +137,7 @@ int main(int argc, char* arfv[]) {
 
 		sphereModel.RenderInstanced(PARTICLE_COUNT);
 
-		glfwSwapBuffers(window);
-		glfwPollEvents();
+		window.Update();
 
 		if ((float)glfwGetTime() > 10.0f && switchShader)
 		{
@@ -181,7 +153,6 @@ int main(int argc, char* arfv[]) {
 			shaderLoader.SendUniformData("model", model);
 		}
 
-
 		// FRAME COUNT
 		if (frames % 60 == 0)
 		{
@@ -189,7 +160,7 @@ int main(int argc, char* arfv[]) {
 			float fps = 1.0f / frametime;
 
 			sprintf(title, "%.0i Spheres FPS: %.2f Frametime in ms: %.4f", PARTICLE_COUNT ,fps, frametime * 1000.0f);
-			glfwSetWindowTitle(window, title);
+			window.setTitle(title);
 		}
 
 		lastFrameTime = (float)glfwGetTime();
@@ -201,8 +172,5 @@ int main(int argc, char* arfv[]) {
 	shaderLoader.DestroyProgram(*mainShader);
 	shaderLoader.DestroyProgram(*ssaoShader);
 
-
-	glfwDestroyWindow(window);
-	glfwTerminate();
 	return 0;
 }

@@ -12,17 +12,12 @@ uniform mat4 model;
 
 
 out vec3 normalVec;
-out vec2 vUv;
 out vec3 vertexOut;
-flat out int InstanceID;
 
 
 void main() {
    
     vertexOut = vec3(vec4(vertex + p,  1.));
     normalVec = normalize(normal);
-	vUv = uv;
-
-	InstanceID = gl_InstanceID;
     gl_Position = projection * view * model * vec4(vertexOut,  1.);
 }

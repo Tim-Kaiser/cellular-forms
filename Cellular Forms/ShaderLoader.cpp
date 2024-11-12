@@ -5,15 +5,6 @@
 #include "ShaderLoader.h"
 
 
-ShaderLoader::ShaderLoader()
-{
-    m_shaderProgramID = glCreateProgram();
-
-    if (m_shaderProgramID == 0) {
-        std::cout << "Error creating shader program" << std::endl;
-    }
-}
-
 std::unique_ptr<Shader> ShaderLoader::CreateShaders()
 {
     GLuint vertexShaderID = glCreateShader(GL_VERTEX_SHADER);
@@ -234,9 +225,5 @@ bool ShaderLoader::SendUniformData(const std::string& uniformName, const glm::ve
     return true;
 }
 
-GLuint ShaderLoader::GetShaderProgramID()
-{
-    return m_shaderProgramID;
-}
 
 
