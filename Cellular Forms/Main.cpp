@@ -9,8 +9,6 @@
 #include <glm.hpp>
 
 
-std::string title = "Cellular Forms";
-
 constexpr auto PARTICLE_COUNT = 60000;
 
 
@@ -76,17 +74,12 @@ int main(int argc, char* arfv[]) {
 
 	shaderLoader.SendUniformData("model", model);
 
-
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
 	glFrontFace(GL_CCW);
-
-	char title[64];
-	float lastFrameTime = (float)glfwGetTime();
-	int frames = 0;
 
 	bool switchShader = true;
 
@@ -152,19 +145,6 @@ int main(int argc, char* arfv[]) {
 
 			shaderLoader.SendUniformData("model", model);
 		}
-
-		// FRAME COUNT
-		if (frames % 60 == 0)
-		{
-			float frametime = (float)glfwGetTime() - lastFrameTime;
-			float fps = 1.0f / frametime;
-
-			sprintf(title, "%.0i Spheres FPS: %.2f Frametime in ms: %.4f", PARTICLE_COUNT ,fps, frametime * 1000.0f);
-			window.setTitle(title);
-		}
-
-		lastFrameTime = (float)glfwGetTime();
-		frames++;
 	}
 
 	shaderLoader.DetachShaders(*ssaoShader);

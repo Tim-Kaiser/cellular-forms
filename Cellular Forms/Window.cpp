@@ -25,7 +25,10 @@ void error_callback(int error, const char* description)
 
 Window::Window(int width, int height):
 	m_width(width),
-	m_height(height)
+	m_height(height),
+	m_title(""),
+	m_frames(0),
+	m_lastFrametime(0.0f)
 {
 	if (!glfwInit())
 	{
@@ -37,7 +40,7 @@ Window::Window(int width, int height):
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
 	//glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMP_PROFILE);
 
-	m_window = glfwCreateWindow(m_width, m_height, "OpenGL", NULL, NULL);
+	m_window = glfwCreateWindow(m_width, m_height, m_title.c_str(), NULL, NULL);
 
 	if (!&m_window) {
 		std::printf("window broken");
@@ -72,14 +75,23 @@ void Window::Update()
 	glfwSwapBuffers(m_window);
 	glfwPollEvents();
 
+	// FRAME COUNT
+	if (m_frames % 60 == 0)
+	{
+		float frametime = (float)glfwGetTime() - m_lastFrametime;
+		float fps = 1.0f / frametime;
+
+		//sprintf(m_title, "%.0i Spheres FPS: %.2f Frametime in ms: %.4f", PARTICLE_COUNT, fps, frametime * 1000.0f);
+		m_title = std::format("{} Spheres        FPS: {}       Frametime in MS: {}", "60.000", fps, frametime * 1000.0f);
+		glfwSetWindowTitle(m_window, m_title.c_str());
+	}
+
+	m_lastFrametime = (float)glfwGetTime();
+	m_frames++;
+
 }
 
 bool Window::Open()
 {
 	return !glfwWindowShouldClose(m_window);
-}
-
-void Window::setTitle(char* title)
-{
-	glfwSetWindowTitle(m_window, title);
 }
