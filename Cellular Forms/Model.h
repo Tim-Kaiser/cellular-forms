@@ -5,7 +5,7 @@
 #include "ObjectLoader.h"
 
 #define INSTANCE_STRIDE 3
-#define MAX_INSTANCES 60000
+#define MAX_INSTANCES 100
 
 typedef struct
 {

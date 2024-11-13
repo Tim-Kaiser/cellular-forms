@@ -14,14 +14,14 @@ Mesh Model::createMesh(Object obj, bool isInstanced)
 
 	// VERTEX
 	glBindBuffer(GL_ARRAY_BUFFER, m.vertexVBO);
-	glBufferData(GL_ARRAY_BUFFER, m.obj.vertices.size() * sizeof(GLfloat), &m.obj.vertices[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, obj.vertices.size() * sizeof(GLfloat), &m.obj.vertices[0], GL_STATIC_DRAW);
 	
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
 
 	// NORMAL
 	glBindBuffer(GL_ARRAY_BUFFER, m.normalVBO);
-	glBufferData(GL_ARRAY_BUFFER, m.obj.normals.size() * sizeof(GLfloat), &m.obj.normals[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, obj.normals.size() * sizeof(GLfloat), &m.obj.normals[0], GL_STATIC_DRAW);
 
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
@@ -29,7 +29,7 @@ Mesh Model::createMesh(Object obj, bool isInstanced)
 
 	// TEXTURE
 	glBindBuffer(GL_ARRAY_BUFFER, m.textureVBO);
-	glBufferData(GL_ARRAY_BUFFER, m.obj.uvs.size() * sizeof(GLfloat), &m.obj.uvs[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, obj.uvs.size() * sizeof(GLfloat), &m.obj.uvs[0], GL_STATIC_DRAW);
 
 	glEnableVertexAttribArray(2);
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
