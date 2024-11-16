@@ -25,7 +25,7 @@ int main(int argc, char* arfv[]) {
 	shaderLoader.AttachShaders(*mainShader);
 	shaderLoader.LinkProgram(*mainShader);
 
-	std::unique_ptr<Shader> ssaoShader = shaderLoader.CreateShaders();
+	/*std::unique_ptr<Shader> ssaoShader = shaderLoader.CreateShaders();
 	shaderLoader.CompileShaders("Shaders/ssao.vert", ssaoShader->m_vertexShaderID);
 	shaderLoader.CompileShaders("Shaders/ssao.frag", ssaoShader->m_fragmentShaderID);
 
@@ -37,13 +37,13 @@ int main(int argc, char* arfv[]) {
 	shaderLoader.CompileShaders("Shaders/gBuffer.frag", gBufferShader->m_fragmentShaderID);
 
 	shaderLoader.AttachShaders(*gBufferShader);
-	shaderLoader.LinkProgram(*gBufferShader);
-	glUseProgram(gBufferShader->m_shaderProgramID);
+	shaderLoader.LinkProgram(*gBufferShader);*/
+	glUseProgram(mainShader->m_shaderProgramID);
 
 	Object obj;
 	loadObject("Objects/sphere_small.obj", obj);
 
-	Model sphereModel(obj, true);
+	Model sphereModel(&obj, true);
 
 	Object objQuad;
 	objQuad.vertices = std::vector<GLfloat>({
@@ -76,7 +76,7 @@ int main(int argc, char* arfv[]) {
 	 1.0f, -1.0f, 0.0f
 		});
 
-	Model quadModel(objQuad, false);
+	Model quadModel(&objQuad, false);
 
 	// PARTICLE MOVEMENT
 
@@ -115,81 +115,83 @@ int main(int argc, char* arfv[]) {
 	glFrontFace(GL_CCW);
 
 
-	//SSAO
-	GLuint gBuffer;
-	glGenFramebuffers(1, &gBuffer);
-	glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
-	GLuint gPos, gNormal, gColor;
+	////SSAO
+	//GLuint gBuffer;
+	//glGenFramebuffers(1, &gBuffer);
+	//glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
+	//GLuint gPos, gNormal, gColor;
 
-	int width, height;
+	//int width, height;
 
-	window.getSize(&width, &height);
+	//window.getSize(&width, &height);
 
-	// SSAO
-	glGenTextures(1, &gPos);
-	glBindTexture(GL_TEXTURE_2D, gPos);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, gPos, 0);
+	//// SSAO
+	//glGenTextures(1, &gPos);
+	//glBindTexture(GL_TEXTURE_2D, gPos);
+	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, gPos, 0);
 
-	glGenTextures(1, &gNormal);
-	glBindTexture(GL_TEXTURE_2D, gNormal);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, gNormal, 0);
+	//glGenTextures(1, &gNormal);
+	//glBindTexture(GL_TEXTURE_2D, gNormal);
+	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, gNormal, 0);
 
-	glGenTextures(1, &gColor);
-	glBindTexture(GL_TEXTURE_2D, gColor);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, gColor, 0);
+	//glGenTextures(1, &gColor);
+	//glBindTexture(GL_TEXTURE_2D, gColor);
+	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, gColor, 0);
 
 
-	GLuint attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
-	glDrawBuffers(3, attachments);
+	//GLuint attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
+	//glDrawBuffers(3, attachments);
 
 	
 	while (window.Open()) {
-		glUseProgram(gBufferShader->m_shaderProgramID);
+		//glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
+		//glUseProgram(gBufferShader->m_shaderProgramID);
+
 		glClearColor(0.0, 0.0, 0.0, 1.0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		//glUseProgram(gBufferShader->m_shaderProgramID);
-		////glm::mat4 rotate = glm::rotate(model, (float) glm::radians(time * 50), glm::vec3(0.0, 1.0, 0.0));
-		////Shader::Instance()->SendUniformData("model", rotate);
+		//////glm::mat4 rotate = glm::rotate(model, (float) glm::radians(time * 50), glm::vec3(0.0, 1.0, 0.0));
+		//////Shader::Instance()->SendUniformData("model", rotate);
 
-		glBindBuffer(GL_ARRAY_BUFFER, sphereModel.getMesh().instancedPosVBO);
+		glBindBuffer(GL_ARRAY_BUFFER, sphereModel.getMesh()->instancedPosVBO);
 		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(GLfloat)* INSTANCE_STRIDE* PARTICLE_COUNT, &particles[0]);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 		sphereModel.RenderInstanced(PARTICLE_COUNT);
 
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		//glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-		glUseProgram(ssaoShader->m_shaderProgramID);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, gPos);
+		//glUseProgram(ssaoShader->m_shaderProgramID);
 
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, gNormal);
+		//glClear(GL_COLOR_BUFFER_BIT);
 
-		glActiveTexture(GL_TEXTURE2);
-		glBindTexture(GL_TEXTURE_2D, gColor);
+		//glActiveTexture(GL_TEXTURE0);
+		//glBindTexture(GL_TEXTURE_2D, gPos);
 
+		//glActiveTexture(GL_TEXTURE1);
+		//glBindTexture(GL_TEXTURE_2D, gNormal);
 
-		quadModel.Render();
+		//glActiveTexture(GL_TEXTURE2);
+		//glBindTexture(GL_TEXTURE_2D, gColor);
+
+		//quadModel.Render();
 
 		window.Update();
 	}
 
-	shaderLoader.DetachShaders(*ssaoShader);
+	//shaderLoader.DetachShaders(*ssaoShader);
 	shaderLoader.DestroyShaders(*mainShader);
 	shaderLoader.DestroyProgram(*mainShader);
-	shaderLoader.DestroyProgram(*ssaoShader);
+	//shaderLoader.DestroyProgram(*ssaoShader);
 
 	return 0;
 }
