@@ -126,14 +126,13 @@ GLint ShaderLoader::GetUniformID(const std::string& uniformName) {
         return -1;
     }
     return id;
-
 }
 
 bool ShaderLoader::SendUniformData(const std::string& uniformName, GLint& data)
 {
     GLint id = GetUniformID(uniformName);
 
-    if (id != -1) {
+    if (id == -1) {
         return false;
     }
 
