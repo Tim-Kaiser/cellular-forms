@@ -39,7 +39,7 @@ int main(int argc, char* arfv[]) {
 	std::vector < GLfloat > particles;
 	particles.reserve(elements);
 
-	int ROWS = 100;
+	int ROWS = 150;
 	int index = 0;
 	for (int i = 0; i < PARTICLE_COUNT; i = i + 1)
 	{
@@ -52,7 +52,7 @@ int main(int argc, char* arfv[]) {
 
 	// PROJECTION
 
-	glm::mat4 model = glm::scale(glm::translate(glm::mat4(1.0), glm::vec3(-1.0, -1.0, 0.0)), glm::vec3(0.005f));
+	glm::mat4 model = glm::scale(glm::translate(glm::mat4(1.0), glm::vec3(-1.0, -1.0, 0.0)), glm::vec3(0.02f));
 	glm::mat4 perspective = (glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 100.0f));
 
 	glm::mat4 view = glm::lookAt(glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
@@ -143,10 +143,6 @@ int main(int argc, char* arfv[]) {
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, gBuffer);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		
-		//////glm::mat4 rotate = glm::rotate(model, (float) glm::radians(time * 50), glm::vec3(0.0, 1.0, 0.0));
-		//////Shader::Instance()->SendUniformData("model", rotate);
-
 		glBindVertexArray(sphereModel.getMesh()->VAO);
 		glBindBuffer(GL_ARRAY_BUFFER, sphereModel.getMesh()->instancedPosVBO);
 		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(GLfloat)* INSTANCE_STRIDE* PARTICLE_COUNT, &particles[0]);
@@ -172,11 +168,6 @@ int main(int argc, char* arfv[]) {
 		glBindTexture(GL_TEXTURE_2D, gColor);
 
 		quadModel.Render();
-
-		//glBindFramebuffer(GL_READ_FRAMEBUFFER, gBuffer);
-		//glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-		//glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
-		//glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 		window.Update();
 	}

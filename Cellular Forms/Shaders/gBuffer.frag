@@ -13,5 +13,5 @@ void main()
 {    
     gPos = vertexOut;
     gNormal = normalize(normalVec);
-    gColor = vec3(1.0);
+    gColor = vec3(0.7);
 }  
