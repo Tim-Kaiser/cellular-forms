@@ -29,42 +29,57 @@ bool loadObject(const char* path, Object& obj)
     while (std::getline(file, line)) 
     {
         if (line[0] == 'v' && line[1] == ' ') {
-            glm::vec3 vertex;
+            glm::vec3 vertex{};
             line.erase(0, 1);
 
-            std::stringstream ss(line);
-            for (int i = 0; i < 3; i++)
+            char* parts[3];
+            parts[0] = strtok(&line[0], " ");
+
+            for (int i = 1; i < 3; i++)
             {
-                ss >> vertex[i];
+                parts[i] = strtok(NULL, " ");
             }
+
+            vertex.x = atof(parts[0]);
+            vertex.y = atof(parts[1]);
+            vertex.z = atof(parts[2]);
+
             temp_vertices.emplace_back(vertex);
             num_vert++;
         }
         else if (line[0] == 'v' && line[1] == 't')
         {
-            glm::vec2 uv;
+            glm::vec2 uv{};
             line.erase(0, 2);
 
-            std::stringstream ss(line);
-            for (int i = 0; i < 2; i++)
-            {
-                ss >> uv[i];
-            }
+            char* parts[3];
+            parts[0] = strtok(&line[0], " ");
+            parts[1] = strtok(NULL, " ");
+
+            uv.x = atof(parts[0]);
+            uv.y = atof(parts[1]);
             temp_uvs.emplace_back(uv);
             num_uv++;
 
         }
         else if (line[0] == 'v' && line[1] == 'n')
         {
-            glm::vec3 normal;
+            glm::vec3 normal{};
 
             line.erase(0, 2);
 
-            std::stringstream ss(line);
-            for (int i = 0; i < 3; i++)
+            char* parts[3];
+            parts[0] = strtok(&line[0], " ");
+
+            for (int i = 1; i < 3; i++)
             {
-                ss >> normal[i];
+                parts[i] = strtok(NULL, " ");
             }
+
+            normal.x = atof(parts[0]);
+            normal.y = atof(parts[1]);
+            normal.z = atof(parts[2]);
+
             temp_normals.emplace_back(normal);
             num_normals++;
 

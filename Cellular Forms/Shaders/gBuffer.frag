@@ -7,10 +7,11 @@ layout (location = 2) out vec4 gColor;
 in vec3 vertexOut;
 in vec3 normalVec;
 
+out vec4 fragCol;
 
 void main()
 {    
     gPos = vertexOut;
     gNormal = normalize(normalVec);
-    gColor = vec4(0.7);
+    gColor = vec4(normalVec, 1.0);
 }  

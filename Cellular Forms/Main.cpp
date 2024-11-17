@@ -8,24 +8,16 @@
 #include <vector>
 #include <glm.hpp>
 
-
-constexpr auto PARTICLE_COUNT = 100;
-
+constexpr auto PARTICLE_COUNT = 60000;
 
 int main(int argc, char* arfv[]) {
 
-	Window window(1920, 1080);
+	Window window(2540, 1080);
 
 	//===== SHADER INIT =====
 	ShaderLoader shaderLoader;
-	std::unique_ptr<Shader> mainShader = shaderLoader.CreateShaders();
-	shaderLoader.CompileShaders("Shaders/main.vert", mainShader->m_vertexShaderID);
-	shaderLoader.CompileShaders("Shaders/main.frag", mainShader->m_fragmentShaderID);
 
-	shaderLoader.AttachShaders(*mainShader);
-	shaderLoader.LinkProgram(*mainShader);
-
-	/*std::unique_ptr<Shader> ssaoShader = shaderLoader.CreateShaders();
+	std::unique_ptr<Shader> ssaoShader = shaderLoader.CreateShaders();
 	shaderLoader.CompileShaders("Shaders/ssao.vert", ssaoShader->m_vertexShaderID);
 	shaderLoader.CompileShaders("Shaders/ssao.frag", ssaoShader->m_fragmentShaderID);
 
@@ -37,46 +29,8 @@ int main(int argc, char* arfv[]) {
 	shaderLoader.CompileShaders("Shaders/gBuffer.frag", gBufferShader->m_fragmentShaderID);
 
 	shaderLoader.AttachShaders(*gBufferShader);
-	shaderLoader.LinkProgram(*gBufferShader);*/
-	glUseProgram(mainShader->m_shaderProgramID);
-
-	Object obj;
-	loadObject("Objects/sphere_small.obj", obj);
-
-	Model sphereModel(&obj, true);
-
-	Object objQuad;
-	objQuad.vertices = std::vector<GLfloat>({
-	-1.0f,  1.0f, 0.0f,
-	-1.0f, -1.0f, 0.0f,
-	1.0f, -1.0f, 0.0f,
-
-	1.0f, -1.0f, 0.0f,
-	1.0f, 1.0f, 0.0f,
-	-1.0f,  1.0f, 0.0f,		 
-		});
-
-	objQuad.uvs = std::vector<GLfloat>({
-		0.0f, 1.0f,
-		0.0f, 0.0f,
-		1.0f, 0.0f,
-
-		1.0f, 0.0f,
-		1.0f, 1.0f,
-		0.0f, 1.0f
-		});
-
-	objQuad.normals = std::vector<GLfloat>({
-	-1.0f,  1.0f, 0.0f,
-	 1.0f,  1.0f, 0.0f,
-	-1.0f, -1.0f, 0.0f,
-
-	-1.0f, -1.0f, 0.0f,
-	 1.0f,  1.0f, 0.0f,
-	 1.0f, -1.0f, 0.0f
-		});
-
-	Model quadModel(&objQuad, false);
+	shaderLoader.LinkProgram(*gBufferShader);
+	glUseProgram(gBufferShader->m_shaderProgramID);
 
 	// PARTICLE MOVEMENT
 
@@ -114,84 +68,129 @@ int main(int argc, char* arfv[]) {
 	glCullFace(GL_BACK);
 	glFrontFace(GL_CCW);
 
-
-	////SSAO
-	//GLuint gBuffer;
-	//glGenFramebuffers(1, &gBuffer);
-	//glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
-	//GLuint gPos, gNormal, gColor;
-
-	//int width, height;
-
-	//window.getSize(&width, &height);
-
-	//// SSAO
-	//glGenTextures(1, &gPos);
-	//glBindTexture(GL_TEXTURE_2D, gPos);
-	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, gPos, 0);
-
-	//glGenTextures(1, &gNormal);
-	//glBindTexture(GL_TEXTURE_2D, gNormal);
-	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, gNormal, 0);
-
-	//glGenTextures(1, &gColor);
-	//glBindTexture(GL_TEXTURE_2D, gColor);
-	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, gColor, 0);
+	Object obj;
+	loadObject("Objects/sphere_small.obj", obj); 
+	Model sphereModel(&obj, true);
 
 
-	//GLuint attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
-	//glDrawBuffers(3, attachments);
+	Object objQuad;
+	loadObject("Objects/quad.obj", objQuad);
+	Model quadModel(&objQuad, false);
 
+
+	//SSAO
+	GLuint gBuffer;
+	glGenFramebuffers(1, &gBuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
+	GLuint gPos, gNormal, gColor;
+
+	int width, height;
+
+	window.getSize(&width, &height);
+
+	// SSAO
+	glGenTextures(1, &gPos);
+	glBindTexture(GL_TEXTURE_2D, gPos);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, gPos, 0);
+
+	glGenTextures(1, &gNormal);
+	glBindTexture(GL_TEXTURE_2D, gNormal);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, gNormal, 0);
+
+	glGenTextures(1, &gColor);
+	glBindTexture(GL_TEXTURE_2D, gColor);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, gColor, 0);
+
+
+	GLuint attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
+	glDrawBuffers(3, attachments);
+
+
+	GLuint rboDepthBuffer;
+	glGenRenderbuffers(1, &rboDepthBuffer);
+	glBindRenderbuffer(GL_RENDERBUFFER, rboDepthBuffer);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboDepthBuffer);
+	
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+		std::cout << "Framebuffer not complete!" << std::endl;
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	glUseProgram(ssaoShader->m_shaderProgramID);
+	GLuint pos = 0;
+	GLuint normal = 1;
+	GLuint color = 2;
+	shaderLoader.SendUniformData("gPos", pos);
+	shaderLoader.SendUniformData("gNormal", normal);
+	shaderLoader.SendUniformData("gColor", color);
 	
 	while (window.Open()) {
-		//glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
-		//glUseProgram(gBufferShader->m_shaderProgramID);
-
-		glClearColor(0.0, 0.0, 0.0, 1.0);
+		glClearColor(0.0, 0.0, 0.0, 0.0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+		glEnable(GL_DEPTH_TEST);
+
+		glUseProgram(gBufferShader->m_shaderProgramID);
+		glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		
 		//////glm::mat4 rotate = glm::rotate(model, (float) glm::radians(time * 50), glm::vec3(0.0, 1.0, 0.0));
 		//////Shader::Instance()->SendUniformData("model", rotate);
 
+		glBindVertexArray(sphereModel.getMesh()->VAO);
 		glBindBuffer(GL_ARRAY_BUFFER, sphereModel.getMesh()->instancedPosVBO);
 		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(GLfloat)* INSTANCE_STRIDE* PARTICLE_COUNT, &particles[0]);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
-
+		glBindVertexArray(0);
 		sphereModel.RenderInstanced(PARTICLE_COUNT);
 
-		//glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-		//glUseProgram(ssaoShader->m_shaderProgramID);
 
-		//glClear(GL_COLOR_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT);
+		glUseProgram(ssaoShader->m_shaderProgramID);
 
-		//glActiveTexture(GL_TEXTURE0);
-		//glBindTexture(GL_TEXTURE_2D, gPos);
+		
+		glDisable(GL_DEPTH_TEST);
 
-		//glActiveTexture(GL_TEXTURE1);
-		//glBindTexture(GL_TEXTURE_2D, gNormal);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, gPos);
 
-		//glActiveTexture(GL_TEXTURE2);
-		//glBindTexture(GL_TEXTURE_2D, gColor);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, gNormal);
 
-		//quadModel.Render();
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, gColor);
+
+		quadModel.Render();
+
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, gBuffer);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+		glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 		window.Update();
 	}
 
-	//shaderLoader.DetachShaders(*ssaoShader);
-	shaderLoader.DestroyShaders(*mainShader);
-	shaderLoader.DestroyProgram(*mainShader);
-	//shaderLoader.DestroyProgram(*ssaoShader);
+	glDeleteFramebuffers(1, &gBuffer);
 
+
+	shaderLoader.DetachShaders(*ssaoShader);
+
+	shaderLoader.DestroyShaders(*gBufferShader);
+	shaderLoader.DestroyProgram(*gBufferShader);
+
+	shaderLoader.DestroyShaders(*ssaoShader);
+	shaderLoader.DestroyProgram(*ssaoShader);
 	return 0;
 }

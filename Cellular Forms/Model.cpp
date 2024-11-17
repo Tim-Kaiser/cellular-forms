@@ -5,12 +5,12 @@ Mesh* Model::createMesh(Object* obj, bool isInstanced)
 	Mesh* m = (Mesh*)malloc(sizeof(Mesh)); 
 	m->obj = obj;
 	
-	glGenVertexArrays(1, &m->VAO);
+	glCreateVertexArrays(1, &m->VAO);
 	glBindVertexArray(m->VAO);
 
-	glGenBuffers(1, &m->vertexVBO);
-	glGenBuffers(1, &m->normalVBO);
-	glGenBuffers(1, &m->textureVBO);
+	glCreateBuffers(1, &m->vertexVBO);
+	glCreateBuffers(1, &m->normalVBO);
+	glCreateBuffers(1, &m->textureVBO);
 
 	// VERTEX
 	glBindBuffer(GL_ARRAY_BUFFER, m->vertexVBO);
