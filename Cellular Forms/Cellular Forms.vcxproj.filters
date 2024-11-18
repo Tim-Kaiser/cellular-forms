@@ -19,6 +19,9 @@
     <Filter Include="math">
       <UniqueIdentifier>{cd0b2d22-a7e1-48d1-8f9f-6aff3b41e1da}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shader\SSAO">
+      <UniqueIdentifier>{f9549481-bdbb-4760-99a8-2a7a305a0766}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -30,27 +33,24 @@
     <ClCompile Include="gl.c">
       <Filter>glad</Filter>
     </ClCompile>
-    <ClCompile Include="Shader.cpp">
+    <ClCompile Include="ShaderLoader.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="Quad.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="Buffer.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="Loader.cpp">
+    <ClCompile Include="ObjectLoader.cpp">
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="Model.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="Camera.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Window.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Particle.h">
-      <Filter>Header</Filter>
-    </ClInclude>
-    <ClInclude Include="Vec2.h">
       <Filter>Header</Filter>
     </ClInclude>
     <ClInclude Include="include\glad\gl.h">
@@ -59,19 +59,19 @@
     <ClInclude Include="include\KHR\khrplatform.h">
       <Filter>glad</Filter>
     </ClInclude>
-    <ClInclude Include="Shader.h">
+    <ClInclude Include="ShaderLoader.h">
       <Filter>Header</Filter>
     </ClInclude>
-    <ClInclude Include="Quad.h">
-      <Filter>Header</Filter>
-    </ClInclude>
-    <ClInclude Include="Buffer.h">
-      <Filter>Header</Filter>
-    </ClInclude>
-    <ClInclude Include="Loader.h">
+    <ClInclude Include="ObjectLoader.h">
       <Filter>Header</Filter>
     </ClInclude>
     <ClInclude Include="Model.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Camera.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Window.h">
       <Filter>Header</Filter>
     </ClInclude>
   </ItemGroup>
@@ -86,6 +86,18 @@
     </None>
     <None Include="Shaders\main.frag">
       <Filter>Shader</Filter>
+    </None>
+    <None Include="Shaders\ssao.frag">
+      <Filter>Shader\SSAO</Filter>
+    </None>
+    <None Include="Shaders\ssao.vert">
+      <Filter>Shader\SSAO</Filter>
+    </None>
+    <None Include="Shaders\gBuffer.frag">
+      <Filter>Shader\SSAO</Filter>
+    </None>
+    <None Include="Shaders\gBuffer.vert">
+      <Filter>Shader\SSAO</Filter>
     </None>
   </ItemGroup>
 </Project>

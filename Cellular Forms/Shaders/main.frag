@@ -11,4 +11,5 @@ void main() {
 	//fragCol = vec4(0., 1., 1., 1.);
 	vec3 c = vec3(0.7,0.7,0.7);
 	fragCol = vec4(vUv, 1.0, 1.0);
+	//fragCol = vec4(normalVec, 1.0);
 }

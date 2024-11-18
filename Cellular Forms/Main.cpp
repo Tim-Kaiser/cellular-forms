@@ -1,161 +1,65 @@
 #define GLFW_INCLUDE_NONE
 
-#include "Particle.h"
-#include "Vec2.h"
-#include "Shader.h"
-#include "Quad.h"
-#include "Loader.h"
-#include "Buffer.h"
+#include "Window.h"
+#include "ShaderLoader.h"
+#include "ObjectLoader.h"
 #include "Model.h"
 
 #include <vector>
-#include <iostream>
 #include <glm.hpp>
-#include <GLFW/glfw3.h>
-#include "include/glad/gl.h"
 
-
-int frames = 0;
-std::string title = "Cellular Forms";
-
-constexpr auto PARTICLE_COUNT = 15000;
-
-
-static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-		glfwSetWindowShouldClose(window, GLFW_TRUE);
-}
-
-void window_close_callback(GLFWwindow* window) {
-	glfwSetWindowShouldClose(window, GLFW_TRUE);
-}
-
-void framebuffer_resize_callback(GLFWwindow* window, int width, int height)
-{
-	glViewport(0, 0, width, height);
-}
-
-void error_callback(int error, const char* description)
-{
-	fprintf(stderr, "Error: %s\n", description);
-}
-
-void updateWindowTitle(GLFWwindow* window, float deltaT)
-{
-	if (deltaT >= 1000.0)
-	{
-		float fps = frames / deltaT;
-		char title[30];
-		sprintf(title, "Cellular Forms FPS: %.1f", fps);
-		glfwSetWindowTitle(window, title);
-	}
-}
-
-void applyLorenz(GLfloat& x, GLfloat& y, GLfloat& z)
-{
-	float a = 10;
-	float b = 28; 
-	float c = 8.0 / 3.0;
-
-	float dt = 0.0001;
-
-	float dx = (a * (y - x)) * dt;
-	float dy = (x * (b - z) - y) * dt;
-	float dz = (x * y - c * z) * dy;
-
-	x += dx;
-	y += dy;
-	z += dz;
-}
+constexpr auto PARTICLE_COUNT = 60000;
 
 int main(int argc, char* arfv[]) {
 
-	if (!glfwInit())
-	{
-		// Initialization failed
-	}
-	glfwSetErrorCallback(error_callback);
-
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
-	//glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMP_PROFILE);
-
-	GLFWwindow* window = glfwCreateWindow(1920, 1080, "OpenGL - 15.000 Spheres", NULL, NULL);
-
-	if (!window) {
-		std::printf("window broken");
-	};
-
-	glfwSetWindowCloseCallback(window, window_close_callback);
-	glfwSetFramebufferSizeCallback(window, framebuffer_resize_callback);
-	glfwSetKeyCallback(window, key_callback);
-
-	glfwMakeContextCurrent(window);
-
-	gladLoadGL(glfwGetProcAddress);
-	glfwSwapInterval(1);
-
-	
+	Window window(2540, 1080);
 
 	//===== SHADER INIT =====
-	if (!Shader::Instance()->CreateProgram()) {
-		return 0;
-	}
+	ShaderLoader shaderLoader;
 
-	if (!Shader::Instance()->CreateShaders()) {
-		return 0;
-	}
-	if (!Shader::Instance()->CompileShaders("Shaders/main.vert", Shader::ShaderType::VERTEX_SHADER)) {
-		return -1;
-	}
-	if (!Shader::Instance()->CompileShaders("Shaders/main.frag", Shader::ShaderType::FRAGMENT_SHADER)) {
-		return -1;
-	}
-	Shader::Instance()->AttachShaders();
+	std::unique_ptr<Shader> ssaoShader = shaderLoader.CreateShaders();
+	shaderLoader.CompileShaders("Shaders/ssao.vert", ssaoShader->m_vertexShaderID);
+	shaderLoader.CompileShaders("Shaders/ssao.frag", ssaoShader->m_fragmentShaderID);
 
-	if (!Shader::Instance()->LinkProgram()) {
-		return 0;
-	}
+	shaderLoader.AttachShaders(*ssaoShader);
+	shaderLoader.LinkProgram(*ssaoShader);
 
-	int width, height;
-	glfwGetFramebufferSize(window, &width, &height);
-	glViewport(0, 0, width, height);
+	std::unique_ptr<Shader> gBufferShader = shaderLoader.CreateShaders();
+	shaderLoader.CompileShaders("Shaders/gBuffer.vert", gBufferShader->m_vertexShaderID);
+	shaderLoader.CompileShaders("Shaders/gBuffer.frag", gBufferShader->m_fragmentShaderID);
 
-	Object obj;
-	loadObject("Objects/sphere.obj", obj);
-
-	Model sphereModel(obj, true);
+	shaderLoader.AttachShaders(*gBufferShader);
+	shaderLoader.LinkProgram(*gBufferShader);
+	glUseProgram(gBufferShader->m_shaderProgramID);
 
 	// PARTICLE MOVEMENT
 
 	int elements = PARTICLE_COUNT * 3;
 
-	//GLfloat* particles = (GLfloat*) malloc(sizeof(GLfloat) * elements);
+	std::vector < GLfloat > particles;
+	particles.reserve(elements);
 
-	std::vector < GLfloat > particles(elements);
-
-	int ROWS = 100;
+	int ROWS = 150;
 	int index = 0;
 	for (int i = 0; i < PARTICLE_COUNT; i = i + 1)
 	{
-		float x = i % ROWS;
+		int x = i % ROWS;
 		float y = (float) floor(i / ROWS);
-		particles[index++] = (GLfloat)x * 4.0f;
-		particles[index++] = (GLfloat)y * 4.0f;
-		particles[index++] = (GLfloat)0.0f;
+		particles.emplace_back((GLfloat)x * 4.0f);
+		particles.emplace_back((GLfloat)y * 4.0f);
+		particles.emplace_back((GLfloat)0.0f);
 	}
 
 	// PROJECTION
 
-	glm::mat4 model = glm::scale(glm::translate(glm::mat4(1.0), glm::vec3(-1.0, -1.0, 0.0)), glm::vec3(0.005));
+	glm::mat4 model = glm::scale(glm::translate(glm::mat4(1.0), glm::vec3(-1.0, -1.0, 0.0)), glm::vec3(0.02f));
 	glm::mat4 perspective = (glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 100.0f));
 
 	glm::mat4 view = glm::lookAt(glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-	Shader::Instance()->SendUniformData("projection", perspective);
-	Shader::Instance()->SendUniformData("view", view);
+	shaderLoader.SendUniformData("projection", perspective);
+	shaderLoader.SendUniformData("view", view);
 
-	Shader::Instance()->SendUniformData("model", model);
-
+	shaderLoader.SendUniformData("model", model);
 
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
@@ -164,56 +68,119 @@ int main(int argc, char* arfv[]) {
 	glCullFace(GL_BACK);
 	glFrontFace(GL_CCW);
 
+	Object obj;
+	loadObject("Objects/sphere_small.obj", obj); 
+	Model sphereModel(&obj, true);
 
-	float lastT = 0;
-	while (!glfwWindowShouldClose(window)) {
 
+	Object objQuad;
+	loadObject("Objects/quad.obj", objQuad);
+	Model quadModel(&objQuad, false);
+
+
+	//SSAO
+	GLuint gBuffer;
+	glGenFramebuffers(1, &gBuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
+	GLuint gPos, gNormal, gColor;
+
+	int width, height;
+
+	window.getSize(&width, &height);
+
+	// SSAO
+	glGenTextures(1, &gPos);
+	glBindTexture(GL_TEXTURE_2D, gPos);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, gPos, 0);
+
+	glGenTextures(1, &gNormal);
+	glBindTexture(GL_TEXTURE_2D, gNormal);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, gNormal, 0);
+
+	glGenTextures(1, &gColor);
+	glBindTexture(GL_TEXTURE_2D, gColor);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, gColor, 0);
+
+
+	GLuint attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
+	glDrawBuffers(3, attachments);
+
+
+	GLuint rboDepthBuffer;
+	glGenRenderbuffers(1, &rboDepthBuffer);
+	glBindRenderbuffer(GL_RENDERBUFFER, rboDepthBuffer);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32F, width, height);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboDepthBuffer);
+	
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+		std::cout << "Framebuffer not complete!" << std::endl;
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	glUseProgram(ssaoShader->m_shaderProgramID);
+	GLint pos = 0;
+	GLint normal = 1;
+	GLint color = 2;
+	shaderLoader.SendUniformData("gPos", pos);
+	shaderLoader.SendUniformData("gNormal", normal);
+	shaderLoader.SendUniformData("gColor", color);
+	
+	while (window.Open()) {
+		glClearColor(0.0, 0.0, 0.0, 0.0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		float time = glfwGetTime();
+		glEnable(GL_DEPTH_TEST);
 
-		//glm::mat4 rotate = glm::rotate(model, (float) glm::radians(time * 50), glm::vec3(0.0, 1.0, 0.0));
-		//Shader::Instance()->SendUniformData("model", rotate);
+		glUseProgram(gBufferShader->m_shaderProgramID);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, gBuffer);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-
-		frames++;
-		float deltaT = time - lastT;
-		if (deltaT >= 1.0)
-		{
-			float fps = frames / deltaT;
-			char title[30];
-			sprintf(title, "15.000 Spheres FPS: %.1f", fps);
-			glfwSetWindowTitle(window, title);
-			lastT = time;
-			frames = 0;
-		}
-
-		//for (int i = 0; i <= PARTICLE_COUNT - 1; i = i + 3)
-		//{
-			//applyLorenz(particles[i], particles[i + 1], particles[i + 2]);
-		//}
-		glBindVertexArray(sphereModel.getMesh().VAO);
-
-		glBindBuffer(GL_ARRAY_BUFFER, sphereModel.getMesh().instancedPosVBO);
-		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(GLfloat) * INSTANCE_STRIDE * PARTICLE_COUNT, &particles[0]);
+		glBindVertexArray(sphereModel.getMesh()->VAO);
+		glBindBuffer(GL_ARRAY_BUFFER, sphereModel.getMesh()->instancedPosVBO);
+		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(GLfloat)* INSTANCE_STRIDE* PARTICLE_COUNT, &particles[0]);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
-
 		glBindVertexArray(0);
-
 		sphereModel.RenderInstanced(PARTICLE_COUNT);
 
-		
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-		glfwSwapBuffers(window);
-		glfwPollEvents();
+
+		glClear(GL_COLOR_BUFFER_BIT);
+		glUseProgram(ssaoShader->m_shaderProgramID);
+
+		glDisable(GL_DEPTH_TEST);
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, gPos);
+
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, gNormal);
+
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, gColor);
+
+		quadModel.Render();
+
+		window.Update();
 	}
 
+	glDeleteFramebuffers(1, &gBuffer);
 
-	Shader::Instance()->DetachShaders();
-	Shader::Instance()->DestroyShaders();
-	Shader::Instance()->DestroyProgram();
 
-	glfwDestroyWindow(window);
-	glfwTerminate();
+	shaderLoader.DetachShaders(*ssaoShader);
+
+	shaderLoader.DestroyShaders(*gBufferShader);
+	shaderLoader.DestroyProgram(*gBufferShader);
+
+	shaderLoader.DestroyShaders(*ssaoShader);
+	shaderLoader.DestroyProgram(*ssaoShader);
 	return 0;
 }
