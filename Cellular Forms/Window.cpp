@@ -1,12 +1,5 @@
-
-
 #include "Window.h"
 
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
-{
-	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-		glfwSetWindowShouldClose(window, GLFW_TRUE);
-}
 
 void window_close_callback(GLFWwindow* window)
 {
@@ -48,7 +41,6 @@ Window::Window(int width, int height):
 
 	glfwSetWindowCloseCallback(m_window, window_close_callback);
 	glfwSetFramebufferSizeCallback(m_window, framebuffer_resize_callback);
-	glfwSetKeyCallback(m_window, key_callback);
 
 	glfwMakeContextCurrent(m_window);
 
@@ -94,4 +86,19 @@ void Window::Update()
 bool Window::Open()
 {
 	return !glfwWindowShouldClose(m_window);
+}
+
+GLFWwindow* Window::getWindow()
+{
+	return m_window;
+}
+
+void Window::setKeycallback(GLFWkeyfun callback)
+{
+	glfwSetKeyCallback(m_window, callback);
+}
+
+void Window::setMousecallback(GLFWcursorposfun callback)
+{
+	glfwSetCursorPosCallback(m_window, callback);
 }

@@ -6,7 +6,6 @@
 #include <string>
 #include <format>
 
-static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 static void window_close_callback(GLFWwindow* window);
 static void framebuffer_resize_callback(GLFWwindow* window, int width, int height);
 static void error_callback(int error, const char* description);
@@ -30,4 +29,8 @@ public:
 	void getSize(int* width, int* height);
 	void Update();
 	bool Open();
+	GLFWwindow* getWindow();
+
+	void setKeycallback(GLFWkeyfun callback);
+	void setMousecallback(GLFWcursorposfun callback);
 };
