@@ -4,16 +4,71 @@
 #include "ShaderLoader.h"
 #include "ObjectLoader.h"
 #include "Model.h"
+#include "Camera.h"
 
 #include <vector>
 #include <glm.hpp>
 
 constexpr auto PARTICLE_COUNT = 60000;
+Camera camera;
+
+float lastMouseX;
+float lastMouseY;
+bool firstMouseMove = true;
+
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+	{
+		glfwSetWindowShouldClose(window, GLFW_TRUE);
+	}
+	else if (key == GLFW_KEY_W)
+	{
+		camera.handleKeyboardInput(FORWARD);
+	}
+	else if (key == GLFW_KEY_A)
+	{
+		camera.handleKeyboardInput(LEFT);
+	}
+	else if (key == GLFW_KEY_S)
+	{
+		camera.handleKeyboardInput(BACKWARD);
+	}
+	else if (key == GLFW_KEY_D)
+	{
+		camera.handleKeyboardInput(RIGHT);
+	}
+	else if (key == GLFW_KEY_SPACE)
+	{
+		camera.handleKeyboardInput(UPWARD);
+	}
+}
+
+void mouse_callback(GLFWwindow* window, double xpos, double ypos)
+{
+	xpos = static_cast<float>(xpos);
+	ypos = static_cast<float>(ypos);
+
+	if(firstMouseMove)
+	{
+		lastMouseX = xpos;
+		lastMouseY = ypos;
+		firstMouseMove = false;
+	}
+
+	float dx = xpos - lastMouseX;
+	float dy = lastMouseY - ypos;
+	lastMouseX = xpos;
+	lastMouseY = ypos;
+
+	camera.handleMouseInput(dx, dy);
+}
 
 int main(int argc, char* arfv[]) {
 
 	Window window(2540, 1080);
-
+	window.setKeycallback(key_callback);
+	window.setMousecallback(mouse_callback);
 	//===== SHADER INIT =====
 	ShaderLoader shaderLoader;
 
@@ -55,7 +110,7 @@ int main(int argc, char* arfv[]) {
 	glm::mat4 model = glm::scale(glm::translate(glm::mat4(1.0), glm::vec3(-1.0, -1.0, 0.0)), glm::vec3(0.02f));
 	glm::mat4 perspective = (glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 100.0f));
 
-	glm::mat4 view = glm::lookAt(glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+	glm::mat4 view = camera.getViewMatrix();
 	shaderLoader.SendUniformData("projection", perspective);
 	shaderLoader.SendUniformData("view", view);
 
@@ -140,6 +195,11 @@ int main(int argc, char* arfv[]) {
 		glEnable(GL_DEPTH_TEST);
 
 		glUseProgram(gBufferShader->m_shaderProgramID);
+
+		view = camera.getViewMatrix();
+		shaderLoader.SendUniformData("view", view);
+
+
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, gBuffer);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
