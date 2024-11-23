@@ -27,9 +27,6 @@
     <ClCompile Include="Main.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="Particle.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
     <ClCompile Include="gl.c">
       <Filter>glad</Filter>
     </ClCompile>
@@ -48,11 +45,11 @@
     <ClCompile Include="Window.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="Simulation.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Particle.h">
-      <Filter>Header</Filter>
-    </ClInclude>
     <ClInclude Include="include\glad\gl.h">
       <Filter>glad</Filter>
     </ClInclude>
@@ -72,6 +69,9 @@
       <Filter>Header</Filter>
     </ClInclude>
     <ClInclude Include="Window.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Simulation.h">
       <Filter>Header</Filter>
     </ClInclude>
   </ItemGroup>
