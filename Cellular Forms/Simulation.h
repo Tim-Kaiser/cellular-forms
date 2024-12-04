@@ -20,7 +20,7 @@ struct Cell
 {
 	glm::vec3 position;
 	float energy;
-	std::vector<Cell> connectedCells;
+	std::vector<std::shared_ptr<Cell>> connectedCells;
 };
 
 class Simulation
@@ -37,18 +37,18 @@ public:
 
 private:
 	void buildStartingCells();
-	void applyConnectionForces(Cell& cell);
+	void applyConnectionForces(std::shared_ptr<Cell> cell);
 	void applyGlobalRepulsiveInfluences();
-	void splitCell(Cell& cell);
+	void splitCell(std::shared_ptr<Cell> cell);
 
-	glm::vec3 calculateSpringTarget(Cell& cell);
-	glm::vec3 calculatePlanarTarget(Cell& cell);
-	glm::vec3 calculateBulgeTarget(Cell& cell);
+	glm::vec3 calculateSpringTarget(std::shared_ptr<Cell> cell);
+	glm::vec3 calculatePlanarTarget(std::shared_ptr<Cell> cell);
+	glm::vec3 calculateBulgeTarget(std::shared_ptr<Cell> cell);
 
 	void updatePositionsVector();
 
 	std::shared_ptr<SimulationParams> m_settings;
-	std::vector<Cell> m_cells;
+	std::vector<std::shared_ptr<Cell>> m_cells;
 	std::vector<GLfloat> m_positions;
 	size_t m_maxSize;
 };
