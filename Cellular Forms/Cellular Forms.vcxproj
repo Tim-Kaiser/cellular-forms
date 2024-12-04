@@ -27,6 +27,7 @@
     <ClInclude Include="ObjectLoader.h" />
     <ClInclude Include="Model.h" />
     <ClInclude Include="ShaderLoader.h" />
+    <ClInclude Include="ShaderManager.h" />
     <ClInclude Include="Simulation.h" />
     <ClInclude Include="Window.h" />
   </ItemGroup>

@@ -38,7 +38,7 @@ Mesh* Model::createMesh(Object* obj, bool isInstanced)
 		glGenBuffers(1, &m->instancedPosVBO);
 		glBindBuffer(GL_ARRAY_BUFFER, m->instancedPosVBO);
 
-		glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * INSTANCE_STRIDE * MAX_INSTANCES, NULL, GL_STREAM_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * INSTANCE_STRIDE * MAX_INSTANCES, NULL, GL_DYNAMIC_DRAW);
 
 		glEnableVertexAttribArray(3);
 		glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * INSTANCE_STRIDE, nullptr);
@@ -90,6 +90,7 @@ void Model::Render()
 void Model::RenderInstanced(int instanceCount)
 {
 	glBindVertexArray(m_mesh->VAO);
+	//glDrawElementsInstanced(GL_TRIANGLES, instanceCount, GL_UNSIGNED_INT, 0, 1000);
 	glDrawArraysInstanced(GL_TRIANGLES, 0, m_mesh->obj->vertices.size(), instanceCount);
 	glBindVertexArray(0);
 }

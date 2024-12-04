@@ -9,75 +9,122 @@ const float SPRING_FACTOR = 1.0f;
 const float PLANAR_FACTOR = 1.0f;
 const float BULGE_FACTOR = 1.0f;
 
-SimulationParams* settings = nullptr;
 
-void setupSimulation(std::vector<Cell>& cells, int maxSize)
+Simulation::Simulation(size_t maxSize):
+	m_cells(std::vector<Cell>()),
+	m_positions(std::vector<GLfloat>(maxSize*3))
 {
-	cells.reserve(static_cast<rsize_t>(maxSize));
-	// TODO starting cells
+	m_cells.reserve(maxSize);
+	m_maxSize = maxSize;
+	m_settings = std::make_shared<SimulationParams>();
+
+	// Settings setup
+	m_settings->cellLinkLength = CELL_LINK_LENGTH;
+	m_settings->repulsionFactor = REPULSION_FACTOR;
+	m_settings->repulsionRange = REPULSION_RANGE;
+	m_settings->springFactor = SPRING_FACTOR;
+	m_settings->planarFactor = PLANAR_FACTOR;
+	m_settings->bulgeFactor = BULGE_FACTOR;
+
+	buildStartingCells();
 }
 
-void splitCell(Cell& cell)
+Simulation::~Simulation()
 {
-
+	m_settings.reset();
 }
 
-void applyGlobalRepulsiveInfluences(std::vector<Cell>& cells)
+void Simulation::update()
+{
+	updatePositionsVector();
+}
+
+void Simulation::splitCell(Cell& cell)
 {
 	//TODO
+
+	// choose 2 connected cells to determine plane of split
+	// move all connections right to the split plane to the daughter cell
+	// connect the two cells on the split plane to the daughter cell as well
 }
 
-void applyConnectionForces(Cell& cell)
+int Simulation::getCellCount()
+{
+	return static_cast<int>(m_cells.size());
+}
+
+void Simulation::applyGlobalRepulsiveInfluences()
+{
+	//TODO
+
+	// if 2 cells that are not connected are closer than repulsionRange,
+	// move them away from each other by the repulsionFactor
+}
+
+void Simulation::applyConnectionForces(Cell& cell)
 {
 	glm::vec3 pos = cell.position;
 	glm::vec3 bulgeTarget = calculateBulgeTarget(cell) - pos;
 	glm::vec3 planarTarget = calculatePlanarTarget(cell) - pos;
 	glm::vec3 springTarget = calculateSpringTarget(cell) - pos;
 
-	cell.position = pos + (settings->springFactor * springTarget) + (settings->planarFactor * planarTarget) + (settings->bulgeFactor * bulgeTarget);
+	cell.position = pos + (m_settings->springFactor * springTarget) + (m_settings->planarFactor * planarTarget) + (m_settings->bulgeFactor * bulgeTarget);
 }
 
-glm::vec3 calculateBulgeTarget(Cell& cell)
+glm::vec3 Simulation::calculateBulgeTarget(Cell& cell)
 {
 	//TODO
 	glm::vec3 target;
 	return target;
 }
 
-glm::vec3 calculatePlanarTarget(Cell& cell)
-{
-	//TODO
-	glm::vec3 target;
-	return target;
-}
-
-glm::vec3 calculateSpringTarget(Cell& cell)
-{
-	//TODO
-	glm::vec3 target;
-	return target;
-}
-
-void fillPositionsVector(std::vector<Cell>& cells, std::vector<GLfloat>& positions)
+void Simulation::updatePositionsVector()
 {
 	// reset positions
-	positions.clear();
+	m_positions.clear();
 
-	for (const Cell& cell : cells)
+	for (const Cell& cell : m_cells)
 	{
-		positions.emplace_back(cell.position.x);
-		positions.emplace_back(cell.position.y);
-		positions.emplace_back(cell.position.z);
+		m_positions.emplace_back(cell.position.x);
+		m_positions.emplace_back(cell.position.y);
+		m_positions.emplace_back(cell.position.z);
 	}
 }
 
-SimulationParams::SimulationParams(int maxSize, float repulsionFactor = REPULSION_FACTOR, float repulsionRange = REPULSION_RANGE, float springFactor = SPRING_FACTOR, float planarFactor = PLANAR_FACTOR, float bulgeFactor = BULGE_FACTOR, float cellLinkLength = CELL_LINK_LENGTH) :
-	maxSize(maxSize),
-	repulsionFactor(repulsionFactor),
-	repulsionRange(repulsionRange),
-	springFactor(springFactor),
-	planarFactor(planarFactor),
-	bulgeFactor(bulgeFactor),
-	cellLinkLength(cellLinkLength)
+glm::vec3 Simulation::calculatePlanarTarget(Cell& cell)
 {
+	//TODO
+	glm::vec3 target;
+	return target;
+}
+
+void Simulation::buildStartingCells()
+{
+	Cell cell;
+	cell.energy = 0;
+	cell.position = glm::vec3(0.0f, 0.0f, 0.0f);
+	cell.connectedCells = std::vector<Cell>();
+	m_cells.emplace_back(cell);
+
+	Cell cell2;
+	cell2.energy = 0;
+	cell2.position = glm::vec3(2.0f, 0.0f, 0.0f);
+	cell2.connectedCells = std::vector<Cell>();
+	m_cells.emplace_back(cell2);
+
+	cell.connectedCells.push_back(cell2);
+	cell2.connectedCells.push_back(cell);
+	updatePositionsVector();
+}
+
+glm::vec3 Simulation::calculateSpringTarget(Cell& cell)
+{
+	//TODO
+	glm::vec3 target;
+	return target;
+}
+
+std::vector<GLfloat>* Simulation::getPositionsVector()
+{
+	return &m_positions;
 }

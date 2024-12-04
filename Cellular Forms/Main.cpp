@@ -1,10 +1,13 @@
 #define GLFW_INCLUDE_NONE
 
+//#define SHOW_ALL_PARTICLES
+
 #include "Window.h"
 #include "ShaderLoader.h"
 #include "ObjectLoader.h"
 #include "Model.h"
 #include "Camera.h"
+#include "Simulation.h"
 
 #include <vector>
 #include <glm.hpp>
@@ -87,8 +90,9 @@ int main(int argc, char* arfv[]) {
 	shaderLoader.LinkProgram(*gBufferShader);
 	glUseProgram(gBufferShader->m_shaderProgramID);
 
-	// PARTICLE MOVEMENT
 
+
+#ifdef SHOW_ALL_PARTICLES
 	int elements = PARTICLE_COUNT * 3;
 
 	std::vector < GLfloat > particles;
@@ -99,15 +103,21 @@ int main(int argc, char* arfv[]) {
 	for (int i = 0; i < PARTICLE_COUNT; i = i + 1)
 	{
 		int x = i % ROWS;
-		float y = (float) floor(i / ROWS);
+		float y = (float)floor(i / ROWS);
 		particles.emplace_back((GLfloat)x * 4.0f);
 		particles.emplace_back((GLfloat)y * 4.0f);
 		particles.emplace_back((GLfloat)0.0f);
 	}
+#else
+	Simulation sim(PARTICLE_COUNT);
+	std::vector < GLfloat >* particles = sim.getPositionsVector();
+
+#endif // SHOW_ALL_PARTICLES
+
 
 	// PROJECTION
 
-	glm::mat4 model = glm::scale(glm::translate(glm::mat4(1.0), glm::vec3(-1.0, -1.0, 0.0)), glm::vec3(0.02f));
+	glm::mat4 model = glm::scale(glm::translate(glm::mat4(1.0), glm::vec3(-0.0, -0.0, 0.0)), glm::vec3(0.5f));
 	glm::mat4 perspective = (glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 100.0f));
 
 	glm::mat4 view = camera.getViewMatrix();
@@ -189,6 +199,9 @@ int main(int argc, char* arfv[]) {
 	shaderLoader.SendUniformData("gColor", color);
 	
 	while (window.Open()) {
+
+		sim.update();
+
 		glClearColor(0.0, 0.0, 0.0, 0.0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -203,12 +216,14 @@ int main(int argc, char* arfv[]) {
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, gBuffer);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+		int cellCount = sim.getCellCount();
+
 		glBindVertexArray(sphereModel.getMesh()->VAO);
 		glBindBuffer(GL_ARRAY_BUFFER, sphereModel.getMesh()->instancedPosVBO);
-		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(GLfloat)* INSTANCE_STRIDE* PARTICLE_COUNT, &particles[0]);
+		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(GLfloat) * INSTANCE_STRIDE * PARTICLE_COUNT, particles->data());
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glBindVertexArray(0);
-		sphereModel.RenderInstanced(PARTICLE_COUNT);
+		sphereModel.RenderInstanced(cellCount);
 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 

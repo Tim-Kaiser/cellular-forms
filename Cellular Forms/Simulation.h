@@ -2,7 +2,7 @@
 #include <glm.hpp>
 #include <vector>
 #include "include/glad/gl.h"
-
+#include <memory>
 
 struct SimulationParams
 {
@@ -13,8 +13,6 @@ struct SimulationParams
 	float planarFactor;
 	float bulgeFactor;
 	float cellLinkLength;
-
-	SimulationParams(int maxSize, float repulsionFactor, float repulsionRange, float springFactor, float planarFactor, float bulgeFactor, float cellLinkLength);
 };
 
 
@@ -25,14 +23,35 @@ struct Cell
 	std::vector<Cell> connectedCells;
 };
 
+class Simulation
+{
+public:
+	int getCellCount();
+	Simulation(size_t maxSize);
+	~Simulation();
 
-void applyConnectionForces(Cell &cell);
-void applyGlobalRepulsiveInfluences(std::vector<Cell> &cells);
-void splitCell(Cell &cell);
-void setupSimulation(std::vector<Cell> &cells, int maxSize);
+	void update();
 
-void fillPositionsVector(std::vector<Cell>& cells, std::vector<GLfloat>& positions);
+	std::vector<GLfloat>* getPositionsVector();
 
-glm::vec3 calculateSpringTarget(Cell& cell);
-glm::vec3 calculatePlanarTarget(Cell& cell);
-glm::vec3 calculateBulgeTarget(Cell& cell);
+
+private:
+	void buildStartingCells();
+	void applyConnectionForces(Cell& cell);
+	void applyGlobalRepulsiveInfluences();
+	void splitCell(Cell& cell);
+
+	glm::vec3 calculateSpringTarget(Cell& cell);
+	glm::vec3 calculatePlanarTarget(Cell& cell);
+	glm::vec3 calculateBulgeTarget(Cell& cell);
+
+	void updatePositionsVector();
+
+	std::shared_ptr<SimulationParams> m_settings;
+	std::vector<Cell> m_cells;
+	std::vector<GLfloat> m_positions;
+	size_t m_maxSize;
+};
+
+
+
