@@ -36,6 +36,12 @@ Simulation::~Simulation()
 
 void Simulation::update()
 {
+	//TODO
+	
+	// For each cell in cells:
+	// increase energy -> split if energy is high enough
+	// applyConnectionForces
+	// applyGlobalRepulsionForces
 	updatePositionsVector();
 }
 
@@ -101,15 +107,11 @@ glm::vec3 Simulation::calculatePlanarTarget(Cell& cell)
 void Simulation::buildStartingCells()
 {
 	Cell cell;
-	cell.energy = 0;
 	cell.position = glm::vec3(0.0f, 0.0f, 0.0f);
-	cell.connectedCells = std::vector<Cell>();
 	m_cells.emplace_back(cell);
 
 	Cell cell2;
-	cell2.energy = 0;
 	cell2.position = glm::vec3(2.0f, 0.0f, 0.0f);
-	cell2.connectedCells = std::vector<Cell>();
 	m_cells.emplace_back(cell2);
 
 	cell.connectedCells.push_back(cell2);
