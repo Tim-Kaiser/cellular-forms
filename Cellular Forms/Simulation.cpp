@@ -2,12 +2,12 @@
 
 // DEFAULTS
 
-const float CELL_LINK_LENGTH = 2.5f;
+const float CELL_LINK_LENGTH = 1.5f;
 const float REPULSION_FACTOR = 1.0f;
 const float REPULSION_RANGE = 1.0f;
 const float SPRING_FACTOR = 1.5f;
-const float PLANAR_FACTOR = 1.3f;
-const float BULGE_FACTOR = 0.0001f;
+const float PLANAR_FACTOR = 0.5f;
+const float BULGE_FACTOR = 0.001f;
 
 
 Simulation::Simulation(size_t maxSize):
@@ -36,7 +36,6 @@ Simulation::~Simulation()
 
 void Simulation::update()
 {
-	//TODO
 	
 	// For each cell in cells:
 	// increase energy -> split if energy is high enough
@@ -45,8 +44,8 @@ void Simulation::update()
 
 	for (std::shared_ptr<Cell> cell : m_cells)
 	{
-		cell->energy += 0.1f;
-		if (cell->energy >= 1.0f)
+		cell->energy += 0.01f;
+		if (cell->energy >= 1.0f && m_cells.size() < 2000)
 		{
 			splitCell(cell);
 		}
@@ -61,11 +60,6 @@ void Simulation::update()
 
 void Simulation::splitCell(std::shared_ptr<Cell> cell)
 {
-	// choose 2 connected cells to determine plane of split
-	// move all connections right to the split plane to the daughter cell
-	// connect the two cells on the split plane to the daughter cell as well
-	// reset mother cell energy to 0
-
 
 	// if 2 or less connected cells theres no need to determine the split plane 
 	// because all connected cells will connect to both mother and daughter cell
@@ -73,8 +67,7 @@ void Simulation::splitCell(std::shared_ptr<Cell> cell)
 	{
 		std::shared_ptr<Cell> daughterCell = std::make_shared<Cell>();;
 		daughterCell->energy = 0;
-		daughterCell->position = cell->position;
-		daughterCell->position.x += 0.1f;
+		daughterCell->position = cell->position + 0.1f;
 
 		for (std::shared_ptr<Cell> linkedCell : cell->connectedCells)
 		{
@@ -83,11 +76,64 @@ void Simulation::splitCell(std::shared_ptr<Cell> cell)
 
 		}
 		daughterCell->connectedCells.push_back(cell);
+		cell->connectedCells.push_back(daughterCell);
 		m_cells.emplace_back(daughterCell);
 	}
 	else
 	{
+		std::shared_ptr<Cell> daughterCell = std::make_shared<Cell>();;
+		daughterCell->energy = 0;
+		daughterCell->position = cell->position + 0.1f;
 
+		// choose 2 connected cells to determine plane of split
+		// move all connections right to the split plane to the daughter cell
+		// connect the two cells on the split plane to the daughter cell as well
+		// reset mother cell energy to 0
+		
+		// shuffle to (hopefully) avoid picking 2 elements that are next to each other
+		std::shuffle(std::begin(cell->connectedCells), std::end(cell->connectedCells), m_rng);
+		
+		std::shared_ptr<Cell> cellA = cell->connectedCells[0];
+		std::shared_ptr<Cell> cellB = cell->connectedCells[1];
+
+		glm::vec3 A = cellA->position;
+		glm::vec3 B = cellB->position;
+		glm::vec3 normal = glm::cross(A, B);
+
+		glm::vec3 splitPlane = A - B;
+
+		unsigned i = 0;
+		std::vector<unsigned int> indicesToRemove;
+		indicesToRemove.reserve(cell->connectedCells.size());
+		// maybe do this with a queue instead?
+		for (std::shared_ptr<Cell> linkedCell : cell->connectedCells)
+		{
+			if (glm::dot( glm::cross(linkedCell->position, splitPlane), normal ) > 0.0f)
+			{
+				daughterCell->connectedCells.push_back(linkedCell);
+				indicesToRemove.emplace_back(i);
+			}
+			++i;
+		}
+
+		i = 0;
+		for (unsigned index : indicesToRemove)
+		{
+			//unsigned indexToRemove = indicesToRemove[j] - j;
+			cell->connectedCells.erase(cell->connectedCells.begin() + (index - i));
+			++i;
+		}
+
+		daughterCell->connectedCells.push_back(cellA);
+		daughterCell->connectedCells.push_back(cellB);
+
+		cellA->connectedCells.push_back(daughterCell);
+		cellB->connectedCells.push_back(daughterCell);
+
+		daughterCell->connectedCells.push_back(cell);
+		cell->connectedCells.push_back(daughterCell);
+
+		m_cells.emplace_back(daughterCell);
 	}
 
 	cell->energy = 0.0f;
@@ -114,7 +160,8 @@ void Simulation::applyConnectionForces(std::shared_ptr<Cell> cell)
 	glm::vec3 planarTarget = calculatePlanarTarget(cell) - pos;
 	glm::vec3 springTarget = calculateSpringTarget(cell) - pos;
 
-	cell->position += (m_settings->springFactor * springTarget) + (m_settings->planarFactor * planarTarget) + (m_settings->bulgeFactor * bulgeTarget);
+	//  + (m_settings->bulgeFactor * bulgeTarget)
+	cell->position += (m_settings->springFactor * springTarget) + (m_settings->planarFactor * planarTarget);
 }
 
 glm::vec3 Simulation::calculateBulgeTarget(std::shared_ptr<Cell> cell)

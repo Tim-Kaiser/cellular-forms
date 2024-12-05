@@ -3,6 +3,8 @@
 #include <vector>
 #include "include/glad/gl.h"
 #include <memory>
+#include <random>
+#include <algorithm>
 
 struct SimulationParams
 {
@@ -51,6 +53,7 @@ private:
 	std::vector<std::shared_ptr<Cell>> m_cells;
 	std::vector<GLfloat> m_positions;
 	size_t m_maxSize;
+	std::default_random_engine m_rng;
 };
 
 
